@@ -2,22 +2,17 @@
 """
 Simple vLLM request benchmark.
 
-Hits a vLLM server (OpenAI-compatible API), streams the response, and reports:
-  - time to first token (TTFT)
-  - total request time
-  - prompt / completion / total token counts (from vLLM's usage field)
-  - generation tokens/sec
-  - GPU utilisation / memory during the request (via nvidia-smi, if present)
-The response and metrics are printed in the terminal AND appended (with the prompt)
-to one .txt log file.
+Prompts live in prompts/ (one .txt each); logs go to logs/<prompt-name>.txt (appended).
+Per request it reports TTFT, total time, token counts (from vLLM's usage), tok/s and GPU
+utilisation (nvidia-smi). Response + metrics are printed in the terminal AND written to the log.
 
 Examples:
-  python bench_vllm.py --prompt "Explain quicksort in 3 lines"
-  python bench_vllm.py --prompt-file prompt.txt
-  python bench_vllm.py --prompt-file prompt.txt --runs 5 --log my_bench.txt
-  python bench_vllm.py --pick-model --prompt-file prompt.txt
-  python bench_vllm.py --list-models
-  VLLM_API_KEY=... python bench_vllm.py --model Qwen/Qwen3-14B --prompt "What is a LLM?"
+  python bench_vllm.py                                  # run every prompt in prompts/
+  python bench_vllm.py --prompt-file summary            # prompts/summary.txt -> logs/summary.txt
+  python bench_vllm.py --prompt "What is a LLM?"        # inline prompt      -> logs/inline.txt
+  python bench_vllm.py --runs 3 --model Qwen/Qwen3-14B
+  python bench_vllm.py --list-models | --pick-model | --no-gpu | --show-reasoning | --quiet
+  python bench_vllm.py --thinking off                   # Qwen3 etc: turn thinking mode on/off
 """
 
 import argparse
@@ -127,7 +122,7 @@ def pick_model(base_url: str, api_key=None) -> str:
         print("invalid choice")
 
 
-def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, gpu=None):
+def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, gpu=None, thinking=None):
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -141,6 +136,8 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
         "stream": True,
         "stream_options": {"include_usage": True},  # vLLM sends usage in final chunk
     }
+    if thinking is not None:   # only meaningful for models with a thinking mode (Qwen3, ...)
+        payload["chat_template_kwargs"] = {"enable_thinking": thinking == "on"}
 
     text_parts = []
     reasoning_parts = []
@@ -226,12 +223,25 @@ def print_metrics(m, label=""):
         print("\n".join(GpuSampler.lines(m["gpu"])))
 
 
-def write_log(path, prompt, system, summary, runs, response_text, reasoning_text=""):
+LOG_WORDS = 30   # max prompt words shown in the log
+
+
+def short_text(text, n=None):
+    n = n or LOG_WORDS
+    words = text.split()
+    return " ".join(words[:n]) + (" ..." if len(words) > n else "")
+
+
+def write_log(path, name, prompt, system, summary, runs, response_text, reasoning_text="",
+              prompt_path=None, thinking=None):
     """Append one clean block per benchmark to a single .txt log."""
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
     lines = []
     lines.append("=" * 72)
-    lines.append(f"{ts}  |  model: {summary['model']}  |  runs: {len(runs)}")
+    head = f"{ts}  |  model: {summary['model']}  |  prompt: {name}  |  runs: {len(runs)}"
+    if thinking:
+        head += f"  |  thinking: {thinking}"
+    lines.append(head)
     lines.append("=" * 72)
     lines.append("")
     lines.append("[metrics]")
@@ -257,10 +267,15 @@ def write_log(path, prompt, system, summary, runs, response_text, reasoning_text
     if system:
         lines.append("")
         lines.append("[system]")
-        lines.append(system.rstrip())
+        lines.append(short_text(system))
+    words = len(prompt.split())
+    note = f", first {LOG_WORDS} shown" if words > LOG_WORDS else ""
     lines.append("")
-    lines.append("[prompt]")
-    lines.append(prompt.rstrip())
+    if prompt_path:
+        lines.append(f"[prompt]  file: {prompt_path}  ({words} words{note})")
+    else:
+        lines.append(f"[prompt]  inline  ({words} words{note})")
+    lines.append(short_text(prompt))
     lines.append("")
     if reasoning_text:
         lines.append("[reasoning]")
@@ -284,31 +299,63 @@ def main():
                    help="model id (env: VLLM_MODEL; default: first model from /v1/models)")
     p.add_argument("--pick-model", action="store_true", help="show a numbered list of models and choose one")
     p.add_argument("--list-models", action="store_true", help="print available models and exit")
-    p.add_argument("--prompt", default=None, help="prompt text")
-    p.add_argument("--prompt-file", default=None, help="read prompt from this file")
+    p.add_argument("--prompt", default=None, help="inline prompt text (logged to logs/inline.txt)")
+    p.add_argument("--prompt-file", action="append", default=[],
+                   help="prompt file; name or path, looked up in prompts/ (repeatable). Default: all of prompts/")
+    p.add_argument("--prompt-dir", default="prompts", help="folder with .txt prompts")
+    p.add_argument("--log-dir", default="logs", help="folder for logs")
     p.add_argument("--system", default=None, help="optional system prompt")
-    p.add_argument("--log", default="bench_log.txt", help="append prompt, response and metrics here")
+    p.add_argument("--log", default=None, help="single log file for everything (default: logs/<prompt-name>.txt)")
     p.add_argument("--max-tokens", type=int, default=512)
     p.add_argument("--temperature", type=float, default=0.0)
     p.add_argument("--runs", type=int, default=1, help="repeat N times and average")
+    p.add_argument("--thinking", choices=["on", "off"], default=None,
+                   help="turn thinking mode on/off (only for models that have one, e.g. Qwen3)")
+    p.add_argument("--log-words", type=int, default=30, help="max prompt words shown in the log")
     p.add_argument("--no-gpu", action="store_true", help="don't sample GPU utilisation with nvidia-smi")
     p.add_argument("--gpu-interval", type=float, default=0.25, help="seconds between nvidia-smi samples")
     p.add_argument("--show-reasoning", action="store_true", help="also print the model's reasoning/thinking in the terminal")
     p.add_argument("--quiet", action="store_true", help="don't print the response in the terminal (it is still written to the log)")
     args = p.parse_args()
+    global LOG_WORDS
+    LOG_WORDS = args.log_words
 
     if args.list_models:
         for m in list_models(args.url, args.api_key):
             print(m)
         return
 
-    if args.prompt_file:
-        with open(args.prompt_file, encoding="utf-8") as f:
-            prompt = f.read()
-    elif args.prompt:
-        prompt = args.prompt
-    else:
-        sys.exit("Give --prompt or --prompt-file")
+    here = os.path.dirname(os.path.abspath(__file__))
+    prompt_dir = args.prompt_dir if os.path.isabs(args.prompt_dir) else os.path.join(here, args.prompt_dir)
+    log_dir = args.log_dir if os.path.isabs(args.log_dir) else os.path.join(here, args.log_dir)
+    os.makedirs(prompt_dir, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
+    if not os.listdir(prompt_dir):
+        with open(os.path.join(prompt_dir, "example.txt"), "w", encoding="utf-8") as f:
+            f.write("What is a LLM? Answer in two short paragraphs.\n")
+        print(f"created {prompt_dir}/example.txt — add more .txt prompts there")
+
+    # jobs: (name, prompt_text)
+    jobs = []
+    if args.prompt:
+        jobs.append(("inline", args.prompt, None))
+    for f in args.prompt_file:
+        for cand in (f, os.path.join(prompt_dir, f), os.path.join(prompt_dir, f + ".txt")):
+            if os.path.isfile(cand):
+                break
+        else:
+            sys.exit(f"prompt file not found: {f} (looked in ./ and {prompt_dir}/)")
+        name = os.path.splitext(os.path.basename(cand))[0]
+        with open(cand, encoding="utf-8") as fh:
+            jobs.append((name, fh.read(), os.path.relpath(cand)))
+    if not jobs:
+        for fn in sorted(os.listdir(prompt_dir)):
+            if fn.endswith(".txt"):
+                path = os.path.join(prompt_dir, fn)
+                with open(path, encoding="utf-8") as fh:
+                    jobs.append((os.path.splitext(fn)[0], fh.read(), os.path.relpath(path)))
+    if not jobs:
+        sys.exit(f"no prompts found in {prompt_dir}/")
 
     if args.model:
         model = args.model
@@ -316,7 +363,8 @@ def main():
         model = pick_model(args.url, args.api_key)
     else:
         model = list_models(args.url, args.api_key)[0]
-    print(f"using model: {model}\n")
+    print(f"using model: {model}")
+    print(f"prompts: {len(jobs)}   runs each: {args.runs}" + (f"   thinking: {args.thinking}" if args.thinking else ""))
 
     gpu = None
     if not args.no_gpu:
@@ -324,34 +372,41 @@ def main():
         if not gpu.available:
             gpu = None
 
-    runs = []
-    response_text = reasoning_text = ""
-    for i in range(args.runs):
-        m, response_text, reasoning_text = run_once(args.url, args.api_key, model, prompt,
-                                                    args.system, args.max_tokens, args.temperature, gpu)
-        runs.append(m)
-        print_metrics(m, f"run {i + 1}/{args.runs}")
+    for name, prompt, ppath in jobs:
+        print(f"\n################ {name}  ({ppath or 'inline'}) ################")
+        runs = []
+        response_text = reasoning_text = ""
+        for i in range(args.runs):
+            m, response_text, reasoning_text = run_once(args.url, args.api_key, model, prompt,
+                                                        args.system, args.max_tokens, args.temperature,
+                                                        gpu, args.thinking)
+            runs.append(m)
+            print_metrics(m, f"run {i + 1}/{args.runs}")
 
-    if args.runs > 1:
-        keys = ["ttft_s", "total_time_s", "generation_time_s", "prompt_tokens",
-                "completion_tokens", "total_tokens", "generation_tokens_per_s", "overall_tokens_per_s"]
-        avg = {"model": model, "gpu": None}
-        for k in keys:
-            vals = [r[k] for r in runs if r[k] is not None]
-            avg[k] = sum(vals) / len(vals) if vals else None
-        print_metrics(avg, f"average of {args.runs} runs")
-    else:
-        avg = runs[0]
+        if args.runs > 1:
+            keys = ["ttft_s", "total_time_s", "generation_time_s", "prompt_tokens",
+                    "completion_tokens", "total_tokens", "generation_tokens_per_s", "overall_tokens_per_s"]
+            avg = {"model": model, "gpu": None}
+            for k in keys:
+                vals = [r[k] for r in runs if r[k] is not None]
+                avg[k] = sum(vals) / len(vals) if vals else None
+                if k.endswith("_tokens") and avg[k] is not None:
+                    avg[k] = round(avg[k])
+            print_metrics(avg, f"average of {args.runs} runs")
+        else:
+            avg = runs[0]
 
-    if not args.quiet:
-        if reasoning_text and args.show_reasoning:
-            print("\n--- reasoning (last run) ---")
-            print(reasoning_text)
-        print("\n--- response (last run) ---")
-        print(response_text)
+        if not args.quiet:
+            if reasoning_text and args.show_reasoning:
+                print("\n--- reasoning (last run) ---")
+                print(reasoning_text)
+            print("\n--- response (last run) ---")
+            print(response_text)
 
-    write_log(args.log, prompt, args.system, avg, runs, response_text, reasoning_text)
-    print(f"\nlogged to {args.log}")
+        log_path = args.log or os.path.join(log_dir, f"{name}.txt")
+        write_log(log_path, name, prompt, args.system, avg, runs, response_text, reasoning_text,
+                  prompt_path=ppath, thinking=args.thinking)
+        print(f"\nlogged to {os.path.relpath(log_path)}")
 
 if __name__ == "__main__":
     main()
