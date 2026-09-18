@@ -34,15 +34,12 @@ Drop as many `.txt` files as you like in `prompts/`. Running with no prompt argu
 ## Run
 
 ```bash
-export VLLM_API_KEY=your-key            # if your server needs one
-export VLLM_MODEL=Qwen/Qwen3-14B        # optional, else first model from the server
-
-./bench_vllm.sh                         # every prompt in prompts/
-./bench_vllm.sh --prompt-file summary   # just prompts/summary.txt
-./bench_vllm.sh --prompt-file a --prompt-file b --runs 3
-./bench_vllm.sh --prompt "What is a LLM?" --max-tokens 500 --temperature 0.3
-./bench_vllm.sh --list-models
-./bench_vllm.sh --pick-model
+python3 bench_vllm.py
+	--prompt-file prompts/krisala-lead-suggestion.txt
+	--log logs/krisala-lead-suggestion_qwne3-14b-thinking-off.txt
+	--max-tokens 5000
+	--temperature 0.3
+	--thinking off
 ```
 
 Replace `./bench_vllm.sh` with `python3 bench_vllm.py` for the Python version — identical flags.
