@@ -12,10 +12,9 @@ else
 fi
 python3 -c "import requests" 2>/dev/null || pip install requests
 
-# example prompt file
-cat > prompt.txt <<'EOP'
-What is a LLM?
-EOP
+# prompts/ and logs/ are created automatically on first run; add a sample prompt now
+mkdir -p prompts logs
+[[ -e prompts/example.txt ]] || echo "What is a LLM? Answer in two short paragraphs." > prompts/example.txt
 
 echo
 echo "Setup done. Set your server details once:"
@@ -24,5 +23,5 @@ echo "  export VLLM_MODEL=Qwen/Qwen3-14B      # optional, else picked from serve
 echo "  export VLLM_URL=http://localhost:8000/v1   # optional, this is the default"
 echo
 echo "Then run:"
-echo "  python3 bench_vllm.py --prompt-file prompt.txt"
-echo "  python3 bench_vllm.py --prompt \"What is a LLM?\" --max-tokens 500 --temperature 0.3"
+echo "  python3 bench_vllm.py                      # all prompts in prompts/ -> logs/"
+echo "  python3 bench_vllm.py --prompt-file example --runs 3"
