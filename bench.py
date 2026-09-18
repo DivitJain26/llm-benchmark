@@ -7,6 +7,7 @@ Hits a vLLM server (OpenAI-compatible API), streams the response, and reports:
   - total request time
   - prompt / completion / total token counts (from vLLM's usage field)
   - generation tokens/sec
+  - GPU utilisation / memory during the request (via nvidia-smi, if present)
 The response and metrics are printed in the terminal AND appended (with the prompt)
 to one .txt log file.
 
@@ -22,10 +23,78 @@ Examples:
 import argparse
 import json
 import os
+import shutil
+import subprocess
 import sys
+import threading
 import time
 
 import requests
+
+
+class GpuSampler:
+    """Samples nvidia-smi in a background thread while a request runs."""
+
+    def __init__(self, interval=0.25):
+        self.interval = interval
+        self.samples = []          # (index, util%, mem_used_MiB, mem_total_MiB)
+        self.available = shutil.which("nvidia-smi") is not None
+        self._stop = threading.Event()
+        self._thread = None
+
+    def _query(self):
+        try:
+            out = subprocess.run(
+                ["nvidia-smi", "--query-gpu=index,utilization.gpu,memory.used,memory.total",
+                 "--format=csv,noheader,nounits"],
+                capture_output=True, text=True, timeout=5).stdout
+        except Exception:
+            return
+        for line in out.strip().splitlines():
+            parts = [p.strip() for p in line.split(",")]
+            if len(parts) == 4:
+                self.samples.append((int(parts[0]), float(parts[1]), float(parts[2]), float(parts[3])))
+
+    def _loop(self):
+        while not self._stop.is_set():
+            self._query()
+            self._stop.wait(self.interval)
+
+    def start(self):
+        if not self.available:
+            return
+        self.samples = []
+        self._stop.clear()
+        self._thread = threading.Thread(target=self._loop, daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        if self._thread:
+            self._stop.set()
+            self._thread.join()
+            self._thread = None
+
+    def summary(self):
+        """dict per gpu: util_avg, util_max, mem_peak, mem_total, samples"""
+        out = {}
+        for idx, util, mem, tot in self.samples:
+            g = out.setdefault(idx, {"util_sum": 0.0, "util_max": 0.0, "mem_peak": 0.0, "mem_total": tot, "samples": 0})
+            g["util_sum"] += util
+            g["util_max"] = max(g["util_max"], util)
+            g["mem_peak"] = max(g["mem_peak"], mem)
+            g["samples"] += 1
+        for g in out.values():
+            g["util_avg"] = g["util_sum"] / g["samples"] if g["samples"] else None
+            del g["util_sum"]
+        return dict(sorted(out.items()))
+
+    @staticmethod
+    def lines(summary):
+        if not summary:
+            return ["  (no samples)"]
+        return [f"  gpu {i}: util avg {g['util_avg']:.0f}%  max {g['util_max']:.0f}%  |  "
+                f"mem peak {g['mem_peak']:.0f}/{g['mem_total']:.0f} MiB  |  {g['samples']} samples"
+                for i, g in summary.items()]
 
 
 def headers(api_key):
@@ -58,7 +127,7 @@ def pick_model(base_url: str, api_key=None) -> str:
         print("invalid choice")
 
 
-def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature):
+def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, gpu=None):
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -78,6 +147,8 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature):
     usage = {}
     ttft = None
 
+    if gpu:
+        gpu.start()
     t0 = time.perf_counter()
     with requests.post(f"{base_url}/chat/completions", headers=headers(api_key),
                        json=payload, stream=True, timeout=600) as r:
@@ -107,6 +178,8 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature):
                         ttft = time.perf_counter() - t0
                     text_parts.append(content)
     total = time.perf_counter() - t0
+    if gpu:
+        gpu.stop()
 
     response_text = "".join(text_parts)
     reasoning_text = "".join(reasoning_parts)
@@ -130,6 +203,7 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature):
         "overall_tokens_per_s": overall_tps,
         "response_chars": len(response_text),
         "reasoning_chars": len(reasoning_text),
+        "gpu": gpu.summary() if gpu else None,
     }, response_text, reasoning_text
 
 
@@ -147,6 +221,9 @@ def print_metrics(m, label=""):
     print(f"total tokens         : {fmt(m['total_tokens'])}")
     print(f"generation tok/s     : {fmt(m['generation_tokens_per_s'], 1)}")
     print(f"overall tok/s        : {fmt(m['overall_tokens_per_s'], 1)}")
+    if m.get("gpu") is not None:
+        print("gpu (this run)       :")
+        print("\n".join(GpuSampler.lines(m["gpu"])))
 
 
 def write_log(path, prompt, system, summary, runs, response_text, reasoning_text=""):
@@ -171,6 +248,12 @@ def write_log(path, prompt, system, summary, runs, response_text, reasoning_text
         for i, r in enumerate(runs, 1):
             lines.append(f"  run {i}: {fmt(r['ttft_s'])} / {fmt(r['total_time_s'])} / "
                          f"{fmt(r['completion_tokens'])} / {fmt(r['generation_tokens_per_s'], 1)}")
+    if runs and runs[0].get("gpu") is not None:
+        lines.append("")
+        lines.append("[gpu]  sampled with nvidia-smi during each request")
+        for i, r in enumerate(runs, 1):
+            lines.append(f"run {i}:")
+            lines.extend(GpuSampler.lines(r["gpu"]))
     if system:
         lines.append("")
         lines.append("[system]")
@@ -208,6 +291,8 @@ def main():
     p.add_argument("--max-tokens", type=int, default=512)
     p.add_argument("--temperature", type=float, default=0.0)
     p.add_argument("--runs", type=int, default=1, help="repeat N times and average")
+    p.add_argument("--no-gpu", action="store_true", help="don't sample GPU utilisation with nvidia-smi")
+    p.add_argument("--gpu-interval", type=float, default=0.25, help="seconds between nvidia-smi samples")
     p.add_argument("--show-reasoning", action="store_true", help="also print the model's reasoning/thinking in the terminal")
     p.add_argument("--quiet", action="store_true", help="don't print the response in the terminal (it is still written to the log)")
     args = p.parse_args()
@@ -233,18 +318,24 @@ def main():
         model = list_models(args.url, args.api_key)[0]
     print(f"using model: {model}\n")
 
+    gpu = None
+    if not args.no_gpu:
+        gpu = GpuSampler(args.gpu_interval)
+        if not gpu.available:
+            gpu = None
+
     runs = []
     response_text = reasoning_text = ""
     for i in range(args.runs):
         m, response_text, reasoning_text = run_once(args.url, args.api_key, model, prompt,
-                                                    args.system, args.max_tokens, args.temperature)
+                                                    args.system, args.max_tokens, args.temperature, gpu)
         runs.append(m)
         print_metrics(m, f"run {i + 1}/{args.runs}")
 
     if args.runs > 1:
         keys = ["ttft_s", "total_time_s", "generation_time_s", "prompt_tokens",
                 "completion_tokens", "total_tokens", "generation_tokens_per_s", "overall_tokens_per_s"]
-        avg = {"model": model}
+        avg = {"model": model, "gpu": None}
         for k in keys:
             vals = [r[k] for r in runs if r[k] is not None]
             avg[k] = sum(vals) / len(vals) if vals else None

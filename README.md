@@ -6,20 +6,36 @@ A small script that sends one prompt to a running vLLM server and reports:
 - total request time
 - prompt / completion / total token counts (exact, from vLLM's `usage` field)
 - generation tokens/sec and overall tokens/sec
+- GPU utilisation (avg / peak %) and peak memory per GPU during the request, sampled with `nvidia-smi`
 
 **Where the output goes:** the response and metrics are printed in the terminal
 **and** appended, together with the prompt, to a single `.txt` log file
 (`bench_log.txt` by default). Every run adds a new block, so one file holds your
 whole history.
 
-## Files
+## Two versions, same flags, same output
 
-| File | Purpose |
+| File | Use when |
 |---|---|
-| `bench_vllm.py` | the benchmark script |
-| `setup.sh` | one-time setup (venv + `requests` + sample `prompt.txt`) |
-| `prompt.txt` | your prompt (created by `setup.sh`, edit freely) |
+| `bench_vllm.sh` | **no Python in the container** (e.g. RunPod vLLM image). Needs only `curl` + grep/sed/awk. |
+| `bench_vllm.py` | Python is available. Needs `requests`. |
+| `setup.sh` | optional, for the Python version only |
 | `bench_log.txt` | the log, created on first run |
+
+### Bash version (RunPod / no Python)
+
+```bash
+chmod +x bench_vllm.sh
+export VLLM_API_KEY=your-key
+./bench_vllm.sh --model Qwen/Qwen3-14B --prompt "What is a LLM?" --max-tokens 500 --temperature 0.3
+./bench_vllm.sh --prompt-file prompt.txt --runs 3
+./bench_vllm.sh --list-models
+./bench_vllm.sh --pick-model --prompt-file prompt.txt
+```
+
+All the options and the log format below apply to it as well.
+
+### Python version
 
 ## Setup
 
@@ -83,6 +99,8 @@ With none of these, the first model the server reports is used.
 | `--max-tokens` | `512` | max output tokens |
 | `--temperature` | `0.0` | sampling temperature |
 | `--runs` | `1` | repeat N times and print the average |
+| `--no-gpu` | off | skip GPU sampling |
+| `--gpu-interval` | `0.25` | seconds between `nvidia-smi` samples |
 | `--show-reasoning` | off | print Qwen3 reasoning in the terminal too |
 | `--quiet` | off | don't print the response in the terminal (still goes to the log) |
 
@@ -123,6 +141,11 @@ python bench_vllm.py --prompt-file prompt.txt --system "Be concise." --quiet
   run 1: 0.118 / 2.480 / 150 / 63.5
   ...
 
+[gpu]  sampled every 0.25s with nvidia-smi
+run 1:
+  gpu 0: util avg 92%  max 98%  |  mem peak 31276/81920 MiB  |  10 samples
+  ...
+
 [prompt]
 ...
 
@@ -133,4 +156,12 @@ python bench_vllm.py --prompt-file prompt.txt --system "Be concise." --quiet
 ...
 ```
 
-`[per run]` appears only when `--runs` > 1; `[system]` only with `--system`; `[reasoning]` only when the model emits it.# llm-benchmark
+`[gpu]` appears only when `nvidia-smi` is available and `--no-gpu` isn't set; `[per run]` only when `--runs` > 1; `[system]` only with `--system`; `[reasoning]` only when the model emits it.
+
+## GPU numbers — what they mean
+
+`nvidia-smi` is polled every 0.25 s from the moment the request is sent until the last token
+arrives. Utilisation is the average and peak of those samples; memory is the peak `memory.used`.
+For very short requests you may only get a few samples — use a longer prompt / `--max-tokens` or
+`--gpu-interval 0.1` for a finer picture. Memory will look almost constant because vLLM pre-allocates
+its KV cache at startup; the interesting number is utilisation.
