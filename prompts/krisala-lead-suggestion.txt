@@ -31,7 +31,7 @@ INPUTS:
 HARD RULES:
 1. Use ONLY facts present in COMPANY CONTEXT and LEAD CONTEXT.
 2. Return valid JSON matching REQUIRED OUTPUT exactly. No markdown, no commentary.
-3. Return 1-3 suggestions, ordered by urgency (immediate first). One solid suggestion is better than padding.
+3. Return as many suggestions as required, ordered by urgency (immediate first). One solid suggestion is better than padding.
 4. Each suggestion MUST have a different `type`. Never emit two suggestions of the same type.
 5. Do NOT split one outreach into multiple suggestions. If the agent should contact the lead,
    that is ONE next_best_action covering every current agenda item (pending/overdue tasks,
