@@ -39,7 +39,7 @@ Drop as many `.txt` files as you like in `prompts/`. Running with no prompt argu
 ```bash
 python3 bench_vllm.py \
   --prompt-file prompts/krisala-lead-suggestion.txt \
-  --log logs/qwen3-14b-thinking-off_krisala-lead-suggestion.txt \
+  --log logs/qwen3-14b-thinking-off_krisala.txt \
   --max-tokens 5000 \
   --temperature 0.3 \
   --thinking off
