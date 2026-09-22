@@ -25,3 +25,4 @@ echo
 echo "Then run:"
 echo "  python3 bench_vllm.py                      # all prompts in prompts/ -> logs/"
 echo "  python3 bench_vllm.py --prompt-file example --runs 3"
+echo "  python3 bench_vllm_concurrent.py --concurrency 8 --requests 32   # load test -> logs/<prompt>_concurrent.txt"
