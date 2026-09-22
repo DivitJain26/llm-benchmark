@@ -13,6 +13,11 @@ Examples:
   python bench_vllm.py --runs 3 --model Qwen/Qwen3-14B
   python bench_vllm.py --list-models | --pick-model | --no-gpu | --show-reasoning | --quiet
   python bench_vllm.py --thinking off                   # Qwen3 etc: turn thinking mode on/off
+
+Concurrent load test (same prompt fired N times at once, per-request + aggregate metrics):
+  python bench_vllm.py --prompt-file summary --concurrency 8              # 8 requests, all at once
+  python bench_vllm.py --prompt-file summary --concurrency 4 --requests 16  # 16 requests, 4 in flight
+  python bench_vllm.py --prompt-file summary --concurrency 8 --log-responses first
 """
 
 import argparse
@@ -23,6 +28,7 @@ import subprocess
 import sys
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 
@@ -223,6 +229,141 @@ def print_metrics(m, label=""):
         print("\n".join(GpuSampler.lines(m["gpu"])))
 
 
+# --------------------------------------------------------------------------- concurrent mode
+
+def percentile(vals, p):
+    s = sorted(vals)
+    k = (len(s) - 1) * p / 100.0
+    f = int(k)
+    c = min(f + 1, len(s) - 1)
+    return s[f] + (s[c] - s[f]) * (k - f)
+
+
+def stats(vals):
+    """avg / min / p50 / p95 / max over the non-None values (None if empty)."""
+    vals = [v for v in vals if v is not None]
+    if not vals:
+        return None
+    return {"avg": sum(vals) / len(vals), "min": min(vals), "p50": percentile(vals, 50),
+            "p95": percentile(vals, 95), "max": max(vals), "n": len(vals)}
+
+
+def stat_line(s, nd=3, unit=""):
+    if not s:
+        return "-"
+    return (f"avg {fmt(s['avg'], nd)}{unit}  min {fmt(s['min'], nd)}{unit}  p50 {fmt(s['p50'], nd)}{unit}  "
+            f"p95 {fmt(s['p95'], nd)}{unit}  max {fmt(s['max'], nd)}{unit}")
+
+
+def run_concurrent(base_url, api_key, model, prompt, system, max_tokens, temperature,
+                   concurrency, n_requests, gpu=None, thinking=None, verbose=True):
+    """Fire n_requests requests with at most `concurrency` in flight. GPU is sampled for the whole batch.
+
+    Returns a batch dict with aggregate metrics and per-request (metrics, response, reasoning) tuples
+    (in request order). A failed request has metrics['error'] set and empty text.
+    """
+    results = [None] * n_requests
+    lock = threading.Lock()
+    t0 = None
+
+    def worker(i):
+        start_offset = time.perf_counter() - t0
+        try:
+            m, text, reasoning = run_once(base_url, api_key, model, prompt, system, max_tokens,
+                                          temperature, gpu=None, thinking=thinking)
+            m["error"] = None
+        except Exception as e:                       # keep the batch going, record the failure
+            m = {"model": model, "error": f"{type(e).__name__}: {e}", "ttft_s": None,
+                 "total_time_s": time.perf_counter() - t0 - start_offset, "generation_time_s": None,
+                 "prompt_tokens": None, "completion_tokens": None, "total_tokens": None,
+                 "generation_tokens_per_s": None, "overall_tokens_per_s": None,
+                 "response_chars": 0, "reasoning_chars": 0, "gpu": None}
+            text = reasoning = ""
+        m["id"] = i + 1
+        m["start_offset_s"] = start_offset
+        m["end_offset_s"] = time.perf_counter() - t0
+        return i, m, text, reasoning
+
+    if gpu:
+        gpu.start()
+    t0 = time.perf_counter()
+    done = 0
+    with ThreadPoolExecutor(max_workers=concurrency) as ex:
+        futures = [ex.submit(worker, i) for i in range(n_requests)]
+        for fut in as_completed(futures):
+            i, m, text, reasoning = fut.result()
+            results[i] = (m, text, reasoning)
+            with lock:
+                done += 1
+                if verbose:
+                    if m["error"]:
+                        print(f"  [{done:>3}/{n_requests}] req {m['id']:<3} FAILED after {fmt(m['total_time_s'])} s: {m['error']}")
+                    else:
+                        print(f"  [{done:>3}/{n_requests}] req {m['id']:<3} ttft {fmt(m['ttft_s'])} s  "
+                              f"total {fmt(m['total_time_s'])} s  {fmt(m['completion_tokens'])} tok  "
+                              f"{fmt(m['generation_tokens_per_s'], 1)} tok/s")
+    wall = time.perf_counter() - t0
+    if gpu:
+        gpu.stop()
+
+    ok = [r[0] for r in results if not r[0]["error"]]
+    total_completion = sum(m["completion_tokens"] or 0 for m in ok)
+    total_prompt = sum(m["prompt_tokens"] or 0 for m in ok)
+    return {
+        "model": model,
+        "concurrency": concurrency,
+        "requests": n_requests,
+        "ok": len(ok),
+        "failed": n_requests - len(ok),
+        "wall_time_s": wall,
+        "requests_per_s": len(ok) / wall if wall > 0 else None,
+        "total_prompt_tokens": total_prompt,
+        "total_completion_tokens": total_completion,
+        "aggregate_tokens_per_s": total_completion / wall if wall > 0 and total_completion else None,
+        "ttft": stats([m["ttft_s"] for m in ok]),
+        "total_time": stats([m["total_time_s"] for m in ok]),
+        "gen_tps": stats([m["generation_tokens_per_s"] for m in ok]),
+        "completion_tokens": stats([m["completion_tokens"] for m in ok]),
+        "gpu": gpu.summary() if gpu else None,
+        "results": results,
+    }
+
+
+def batch_lines(b, indent="  "):
+    """Metric lines shared by the terminal print and the log."""
+    return [
+        f"{indent}requests             : {b['requests']}  (ok {b['ok']}, failed {b['failed']})  concurrency {b['concurrency']}",
+        f"{indent}wall time            : {fmt(b['wall_time_s'])} s",
+        f"{indent}requests/s           : {fmt(b['requests_per_s'], 2)}",
+        f"{indent}prompt tokens (sum)  : {b['total_prompt_tokens']}",
+        f"{indent}completion tok (sum) : {b['total_completion_tokens']}",
+        f"{indent}aggregate tok/s      : {fmt(b['aggregate_tokens_per_s'], 1)}   (sum completion tokens / wall time)",
+        f"{indent}ttft per request     : {stat_line(b['ttft'], 3, ' s')}",
+        f"{indent}total per request    : {stat_line(b['total_time'], 3, ' s')}",
+        f"{indent}gen tok/s per request: {stat_line(b['gen_tps'], 1)}",
+        f"{indent}completion tokens    : {stat_line(b['completion_tokens'], 0)}",
+    ]
+
+
+def per_request_lines(b, indent="  "):
+    lines = [f"{indent}req   start_s  ttft_s   total_s  prompt_tok  compl_tok  gen_tok_s  status"]
+    for m, _, _ in b["results"]:
+        status = "ok" if not m["error"] else "FAILED: " + m["error"]
+        lines.append(f"{indent}{m['id']:<5} {fmt(m['start_offset_s']):>7}  {fmt(m['ttft_s']):>7}  "
+                     f"{fmt(m['total_time_s']):>8}  {fmt(m['prompt_tokens']):>10}  {fmt(m['completion_tokens']):>9}  "
+                     f"{fmt(m['generation_tokens_per_s'], 1):>9}  {status}")
+    return lines
+
+
+def print_batch(b, label=""):
+    print(f"--- {label or 'concurrent batch'} ---")
+    print(f"model                : {b['model']}")
+    print("\n".join(batch_lines(b, "")))
+    if b.get("gpu") is not None:
+        print("gpu (whole batch)    :")
+        print("\n".join(GpuSampler.lines(b["gpu"])))
+
+
 LOG_WORDS = 30   # max prompt words shown in the log
 
 
@@ -230,6 +371,24 @@ def short_text(text, n=None):
     n = n or LOG_WORDS
     words = text.split()
     return " ".join(words[:n]) + (" ..." if len(words) > n else "")
+
+
+def prompt_lines(prompt, system, prompt_path):
+    lines = []
+    if system:
+        lines.append("")
+        lines.append("[system]")
+        lines.append(short_text(system))
+    words = len(prompt.split())
+    note = f", first {LOG_WORDS} shown" if words > LOG_WORDS else ""
+    lines.append("")
+    if prompt_path:
+        lines.append(f"[prompt]  file: {prompt_path}  ({words} words{note})")
+    else:
+        lines.append(f"[prompt]  inline  ({words} words{note})")
+    lines.append(short_text(prompt))
+    lines.append("")
+    return lines
 
 
 def write_log(path, name, prompt, system, summary, runs, response_text, reasoning_text="",
@@ -264,19 +423,7 @@ def write_log(path, name, prompt, system, summary, runs, response_text, reasonin
         for i, r in enumerate(runs, 1):
             lines.append(f"run {i}:")
             lines.extend(GpuSampler.lines(r["gpu"]))
-    if system:
-        lines.append("")
-        lines.append("[system]")
-        lines.append(short_text(system))
-    words = len(prompt.split())
-    note = f", first {LOG_WORDS} shown" if words > LOG_WORDS else ""
-    lines.append("")
-    if prompt_path:
-        lines.append(f"[prompt]  file: {prompt_path}  ({words} words{note})")
-    else:
-        lines.append(f"[prompt]  inline  ({words} words{note})")
-    lines.append(short_text(prompt))
-    lines.append("")
+    lines.extend(prompt_lines(prompt, system, prompt_path))
     if reasoning_text:
         lines.append("[reasoning]")
         lines.append(reasoning_text.rstrip())
@@ -289,8 +436,61 @@ def write_log(path, name, prompt, system, summary, runs, response_text, reasonin
         f.write("\n".join(lines))
 
 
+def write_batch_log(path, name, prompt, system, batches, prompt_path=None, thinking=None,
+                    log_responses="all"):
+    """Append one block per concurrent benchmark: aggregate metrics, per-request table, every response."""
+    ts = time.strftime("%Y-%m-%d %H:%M:%S")
+    b0 = batches[0]
+    lines = []
+    lines.append("=" * 72)
+    head = (f"{ts}  |  model: {b0['model']}  |  prompt: {name}  |  concurrent: {b0['requests']} requests, "
+            f"{b0['concurrency']} in flight  |  runs: {len(batches)}")
+    if thinking:
+        head += f"  |  thinking: {thinking}"
+    lines.append(head)
+    lines.append("=" * 72)
+    for i, b in enumerate(batches, 1):
+        lines.append("")
+        lines.append("[concurrent metrics]" if len(batches) == 1 else f"[concurrent metrics]  run {i}/{len(batches)}")
+        lines.extend(batch_lines(b))
+        lines.append("")
+        lines.append("[per request]" if len(batches) == 1 else f"[per request]  run {i}/{len(batches)}")
+        lines.extend(per_request_lines(b))
+        if b.get("gpu") is not None:
+            lines.append("")
+            lines.append("[gpu]  sampled with nvidia-smi during the whole batch"
+                         + ("" if len(batches) == 1 else f"  (run {i}/{len(batches)})"))
+            lines.extend(GpuSampler.lines(b["gpu"]))
+    lines.extend(prompt_lines(prompt, system, prompt_path))
+
+    last = batches[-1]
+    if log_responses != "none":
+        results = last["results"] if log_responses == "all" else last["results"][:1]
+        if len(batches) > 1:
+            lines.append(f"[responses]  from the last run ({len(batches)}/{len(batches)})")
+            lines.append("")
+        for m, text, reasoning in results:
+            tag = (f"req {m['id']}  |  ttft {fmt(m['ttft_s'])} s  |  total {fmt(m['total_time_s'])} s  |  "
+                   f"{fmt(m['completion_tokens'])} tok  |  {fmt(m['generation_tokens_per_s'], 1)} tok/s")
+            if m["error"]:
+                lines.append(f"[response {tag}]")
+                lines.append(f"FAILED: {m['error']}")
+                lines.append("")
+                continue
+            if reasoning:
+                lines.append(f"[reasoning {tag}]")
+                lines.append(reasoning.rstrip())
+                lines.append("")
+            lines.append(f"[response {tag}]")
+            lines.append(text.rstrip())
+            lines.append("")
+    lines.append("")
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
 def main():
-    p = argparse.ArgumentParser(description="Benchmark a single vLLM request")
+    p = argparse.ArgumentParser(description="Benchmark vLLM requests (single or concurrent)")
     p.add_argument("--url", default=os.environ.get("VLLM_URL", "http://localhost:8000/v1"),
                    help="vLLM base URL (env: VLLM_URL)")
     p.add_argument("--api-key", default=os.environ.get("VLLM_API_KEY"),
@@ -305,10 +505,17 @@ def main():
     p.add_argument("--prompt-dir", default="prompts", help="folder with .txt prompts")
     p.add_argument("--log-dir", default="logs", help="folder for logs")
     p.add_argument("--system", default=None, help="optional system prompt")
+    p.add_argument("--system-file", default=None, help="read the system prompt from a file")
     p.add_argument("--log", default=None, help="single log file for everything (default: logs/<prompt-name>.txt)")
     p.add_argument("--max-tokens", type=int, default=512)
     p.add_argument("--temperature", type=float, default=0.0)
-    p.add_argument("--runs", type=int, default=1, help="repeat N times and average")
+    p.add_argument("--runs", type=int, default=1, help="repeat N times and average (concurrent: repeat the batch)")
+    p.add_argument("--concurrency", type=int, default=1,
+                   help="send this many requests in parallel (default 1 = sequential, classic mode)")
+    p.add_argument("--requests", type=int, default=None,
+                   help="total requests per prompt in concurrent mode (default: same as --concurrency)")
+    p.add_argument("--log-responses", choices=["all", "first", "none"], default="all",
+                   help="concurrent mode: how many of the responses to write to the log (default all)")
     p.add_argument("--thinking", choices=["on", "off"], default=None,
                    help="turn thinking mode on/off (only for models that have one, e.g. Qwen3)")
     p.add_argument("--log-words", type=int, default=30, help="max prompt words shown in the log")
@@ -325,6 +532,19 @@ def main():
             print(m)
         return
 
+    if args.concurrency < 1:
+        sys.exit("--concurrency must be >= 1")
+    n_requests = args.requests if args.requests is not None else args.concurrency
+    if n_requests < 1:
+        sys.exit("--requests must be >= 1")
+    concurrent = args.concurrency > 1 or (args.requests is not None and args.requests > 1)
+
+    if args.system_file:
+        if not os.path.isfile(args.system_file):
+            sys.exit(f"system file not found: {args.system_file}")
+        with open(args.system_file, encoding="utf-8") as fh:
+            args.system = fh.read()
+
     here = os.path.dirname(os.path.abspath(__file__))
     prompt_dir = args.prompt_dir if os.path.isabs(args.prompt_dir) else os.path.join(here, args.prompt_dir)
     log_dir = args.log_dir if os.path.isabs(args.log_dir) else os.path.join(here, args.log_dir)
@@ -335,7 +555,7 @@ def main():
             f.write("What is a LLM? Answer in two short paragraphs.\n")
         print(f"created {prompt_dir}/example.txt — add more .txt prompts there")
 
-    # jobs: (name, prompt_text)
+    # jobs: (name, prompt_text, prompt_path)
     jobs = []
     if args.prompt:
         jobs.append(("inline", args.prompt, None))
@@ -364,7 +584,9 @@ def main():
     else:
         model = list_models(args.url, args.api_key)[0]
     print(f"using model: {model}")
-    print(f"prompts: {len(jobs)}   runs each: {args.runs}" + (f"   thinking: {args.thinking}" if args.thinking else ""))
+    mode = f"concurrent: {n_requests} requests, {args.concurrency} in flight" if concurrent else "sequential"
+    print(f"prompts: {len(jobs)}   runs each: {args.runs}   mode: {mode}"
+          + (f"   thinking: {args.thinking}" if args.thinking else ""))
 
     gpu = None
     if not args.no_gpu:
@@ -374,6 +596,29 @@ def main():
 
     for name, prompt, ppath in jobs:
         print(f"\n################ {name}  ({ppath or 'inline'}) ################")
+        log_path = args.log or os.path.join(log_dir, f"{name}.txt")
+
+        if concurrent:
+            batches = []
+            for i in range(args.runs):
+                label = f"batch run {i + 1}/{args.runs}" if args.runs > 1 else "batch"
+                print(f"\nfiring {n_requests} requests ({args.concurrency} in flight) ...")
+                b = run_concurrent(args.url, args.api_key, model, prompt, args.system, args.max_tokens,
+                                   args.temperature, args.concurrency, n_requests, gpu, args.thinking)
+                batches.append(b)
+                print_batch(b, label)
+            if not args.quiet:
+                m, text, reasoning = batches[-1]["results"][0]
+                if reasoning and args.show_reasoning:
+                    print("\n--- reasoning (request 1, last batch) ---")
+                    print(reasoning)
+                print("\n--- response (request 1, last batch; all responses are in the log) ---")
+                print(text if not m["error"] else f"FAILED: {m['error']}")
+            write_batch_log(log_path, name, prompt, args.system, batches, prompt_path=ppath,
+                            thinking=args.thinking, log_responses=args.log_responses)
+            print(f"\nlogged to {os.path.relpath(log_path)}")
+            continue
+
         runs = []
         response_text = reasoning_text = ""
         for i in range(args.runs):
@@ -403,10 +648,10 @@ def main():
             print("\n--- response (last run) ---")
             print(response_text)
 
-        log_path = args.log or os.path.join(log_dir, f"{name}.txt")
         write_log(log_path, name, prompt, args.system, avg, runs, response_text, reasoning_text,
                   prompt_path=ppath, thinking=args.thinking)
         print(f"\nlogged to {os.path.relpath(log_path)}")
+
 
 if __name__ == "__main__":
     main()

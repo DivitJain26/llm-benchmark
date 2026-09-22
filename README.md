@@ -7,6 +7,8 @@ A small script that sends one prompt to a running vLLM server and reports:
 - prompt / completion / total token counts (exact, from vLLM's `usage` field)
 - generation tokens/sec and overall tokens/sec
 - GPU utilisation (avg / peak %) and peak memory per GPU during the request, sampled with `nvidia-smi`
+- **concurrent mode** (`--concurrency N`): fire N requests at once and get aggregate tok/s, requests/s,
+  TTFT / latency percentiles, a per-request table and every response in the log
 
 **Where the output goes:** the response and metrics are printed in the terminal
 **and** appended, together with the prompt, to a single `.txt` log file
@@ -36,7 +38,7 @@ Drop as many `.txt` files as you like in `prompts/`. Running with no prompt argu
 ```bash
 python3 bench_vllm.py \
   --prompt-file prompts/krisala-lead-suggestion.txt \
-  --log logs/qwen3-14b-thinking-off_krisala-lead-suggestion.txt \
+  --log logs/qwen3-14b-thinking-off_krisala.txt \
   --max-tokens 5000 \
   --temperature 0.3 \
   --thinking off
@@ -44,6 +46,36 @@ python3 bench_vllm.py \
 
 Replace `./bench_vllm.sh` with `python3 bench_vllm.py` for the Python version — identical flags.
 `--prompt-file` accepts a name (`summary`), a filename (`summary.txt`) or any path.
+
+## Concurrent load test
+
+`--concurrency N` sends N requests **in parallel** (all with the same prompt) instead of one after another.
+`--requests M` sets the total number of requests per prompt (default: same as `--concurrency`); with
+`M > N` the extra requests queue up so at most N are in flight, like real traffic.
+
+```bash
+python3 bench_vllm.py --prompt-file krisala-lead-suggestion --concurrency 8              # 8 at once
+python3 bench_vllm.py --prompt-file krisala-lead-suggestion --concurrency 4 --requests 16 # 16 total, 4 in flight
+python3 bench_vllm.py --prompt-file summary --concurrency 8 --runs 3                      # repeat the batch 3x
+python3 bench_vllm.py --prompt-file summary --concurrency 8 --log-responses first         # log only response 1
+```
+
+The terminal shows each request as it finishes, then the batch summary. The log gets:
+
+- `[concurrent metrics]` — wall time, requests/s, **aggregate tok/s** (sum of completion tokens / wall time),
+  and avg / min / p50 / p95 / max of per-request TTFT, total time, generation tok/s and completion tokens
+- `[per request]` — one row per request: start offset, TTFT, total, tokens, tok/s, ok / FAILED (with the error)
+- `[gpu]` — sampled over the **whole batch**, not per request
+- `[response req N ...]` — every request's response (and `[reasoning req N ...]` if the model emits it),
+  each tagged with its own TTFT / total / tokens. `--log-responses first` keeps only the first, `none` skips them.
+
+A failed request (HTTP error, timeout, ...) is recorded in the table and the batch continues; the
+aggregate numbers only count successful requests. `--runs 3` repeats the whole batch three times and
+logs each batch's metrics; responses are written from the last batch. With several prompt files, each
+prompt gets its own batch and its own log, as in sequential mode.
+
+Note: in a batch, each request's `generation tok/s` is what *that* client saw; `aggregate tok/s` is
+what the server actually produced. The gap between them is the point of the test.
 
 ## Qwen3 thinking
 
@@ -77,9 +109,13 @@ With none of these, the first model the server reports is used.
 | `--log-dir` | `logs` | where logs go |
 | `--log` | `logs/<prompt>.txt` | force a single log file for everything |
 | `--system` | – | optional system prompt |
+| `--system-file` | – | read the system prompt from a file |
 | `--max-tokens` | `512` | max output tokens |
 | `--temperature` | `0.0` | sampling temperature |
-| `--runs` | `1` | repeat N times and print the average |
+| `--runs` | `1` | repeat N times and print the average (concurrent mode: repeat the batch) |
+| `--concurrency` | `1` | send this many requests in parallel; `1` = classic sequential mode |
+| `--requests` | = `--concurrency` | total requests per prompt in concurrent mode (extra ones queue) |
+| `--log-responses` | `all` | concurrent mode: `all` / `first` / `none` responses written to the log |
 | `--thinking` | model default | `on` / `off` — only for models with a thinking mode (Qwen3 etc.); sends vLLM's `enable_thinking` |
 | `--log-words` | `30` | max prompt words written to the log (file name and word count are always logged) |
 | `--no-gpu` | off | skip GPU sampling |
@@ -129,6 +165,43 @@ Summarize the following meeting notes into five bullet points ...
 ```
 
 `[gpu]` appears only when `nvidia-smi` is available and `--no-gpu` isn't set; `[per run]` only when `--runs` > 1; `[system]` only with `--system`; `[reasoning]` only when the model emits it.
+
+Concurrent mode writes a different block:
+
+```
+========================================================================
+2026-09-22 09:31:47  |  model: Qwen/Qwen3-14B  |  prompt: summary  |  concurrent: 8 requests, 4 in flight  |  runs: 1
+========================================================================
+
+[concurrent metrics]
+  requests             : 8  (ok 8, failed 0)  concurrency 4
+  wall time            : 1.222 s
+  requests/s           : 6.55
+  prompt tokens (sum)  : 96
+  completion tok (sum) : 80
+  aggregate tok/s      : 65.5   (sum completion tokens / wall time)
+  ttft per request     : avg 0.567 s  min 0.556 s  p50 0.567 s  p95 0.578 s  max 0.578 s
+  total per request    : avg 0.609 s  min 0.608 s  p50 0.608 s  p95 0.611 s  max 0.611 s
+  gen tok/s per request: avg 250.9  min 192.9  p50 243.4  p95 322.2  max 330.1
+  completion tokens    : avg 10  min 10  p50 10  p95 10  max 10
+
+[per request]
+  req   start_s  ttft_s   total_s  prompt_tok  compl_tok  gen_tok_s  status
+  1       0.000    0.578     0.608          12         10      330.1  ok
+  2       0.001    0.578     0.610          12         10      307.4  ok
+  ...
+
+[gpu]  sampled with nvidia-smi during the whole batch
+  gpu 0: util avg 97%  max 100%  |  mem peak 43871/46068 MiB  |  5 samples
+
+[prompt]  file: prompts/summary.txt  (412 words, first 30 shown)
+...
+
+[response req 1  |  ttft 0.578 s  |  total 0.608 s  |  10 tok  |  330.1 tok/s]
+...
+[response req 2  |  ttft 0.578 s  |  total 0.610 s  |  10 tok  |  307.4 tok/s]
+...
+```
 
 ## GPU numbers — what they mean
 
