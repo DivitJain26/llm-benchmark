@@ -83,6 +83,15 @@ python3 bench_vllm_concurrent.py --concurrency 8                                
 python3 bench_vllm_concurrent.py --prompt-file krisala-lead-suggestion \
   --concurrency 16 --requests 64 --max-tokens 5000 --thinking off                # 64 requests, 16 at a time
 python3 bench_vllm_concurrent.py --mix --concurrency 8 --requests 32 --runs 3    # mixed prompts, averaged
+
+python3 bench_vllm_concurrent.py \
+  --prompt-file krisala-lead-suggestion \
+  --concurrency 50 \
+  --requests 50 \
+  --temperature 0.3 \
+  --max-tokens 5000 \
+  --thinking off \
+  --log logs/Qwen3-32B-AWQ_krisala_50-req.txt
 ```
 
 Logs go to `logs/<prompt>_concurrent.txt` (or `logs/mixed_concurrent.txt` with `--mix`) so they never
