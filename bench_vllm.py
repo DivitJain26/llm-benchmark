@@ -143,6 +143,7 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
     reasoning_parts = []
     usage = {}
     ttft = None
+    finish_reason = None
 
     if gpu:
         gpu.start()
@@ -169,6 +170,8 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
             if chunk.get("usage"):
                 usage = chunk["usage"]
             for choice in chunk.get("choices", []):
+                if choice.get("finish_reason"):
+                    finish_reason = choice["finish_reason"]     # "stop" or "length" (= hit max_tokens)
                 delta = choice.get("delta", {})
                 reasoning = delta.get("reasoning_content")   # Qwen3 "thinking"
                 content = delta.get("content")
@@ -206,6 +209,7 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
         "overall_tokens_per_s": overall_tps,
         "response_chars": len(response_text),
         "reasoning_chars": len(reasoning_text),
+        "finish_reason": finish_reason,
         "gpu": gpu.summary() if gpu else None,
     }, response_text, reasoning_text
 
@@ -308,7 +312,8 @@ def build_parser(description="Benchmark a single vLLM request"):
     p.add_argument("--list-models", action="store_true", help="print available models and exit")
     p.add_argument("--prompt", default=None, help="inline prompt text (logged to logs/inline.txt)")
     p.add_argument("--prompt-file", action="append", default=[],
-                   help="prompt file; name or path, looked up in prompts/ (repeatable). Default: all of prompts/")
+                   help="prompt file: a name (summary), a filename (summary.txt) or a path (prompts/summary.txt), "
+                        "looked up in prompts/ (repeatable). Default: all of prompts/")
     p.add_argument("--prompt-dir", default="prompts", help="folder with .txt prompts")
     p.add_argument("--log-dir", default="logs", help="folder for logs")
     p.add_argument("--system", default=None, help="optional system prompt")
@@ -340,28 +345,48 @@ def resolve_dirs(args):
     return prompt_dir, log_dir
 
 
+def load_prompt_dir(prompt_dir):
+    """Every .txt in prompt_dir, sorted by name -> [(name, prompt_text, prompt_path), ...]."""
+    jobs = []
+    for fn in sorted(os.listdir(prompt_dir)):
+        if fn.endswith(".txt"):
+            path = os.path.join(prompt_dir, fn)
+            with open(path, encoding="utf-8") as fh:
+                jobs.append((os.path.splitext(fn)[0], fh.read(), os.path.relpath(path)))
+    if not jobs:
+        sys.exit(f"no prompts found in {prompt_dir}/")
+    return jobs
+
+
+def find_prompt_file(f, prompt_dir):
+    """
+    Resolve a --prompt-file value. Accepts, in this order:
+      an existing path (relative to cwd or absolute), the same path relative to this script's folder
+      (so `prompts/summary.txt` works from any cwd), or a bare name / filename looked up in prompt_dir.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    base = os.path.basename(f)
+    cands = [f, os.path.join(here, f),
+             os.path.join(prompt_dir, f), os.path.join(prompt_dir, f + ".txt"),
+             os.path.join(prompt_dir, base), os.path.join(prompt_dir, base + ".txt")]
+    for cand in cands:
+        if os.path.isfile(cand):
+            return cand
+    sys.exit(f"prompt file not found: {f} (looked in ./, {here}/ and {prompt_dir}/)")
+
+
 def load_jobs(args, prompt_dir):
     """Return [(name, prompt_text, prompt_path_or_None), ...] from --prompt / --prompt-file / prompts/."""
     jobs = []
     if args.prompt:
         jobs.append(("inline", args.prompt, None))
     for f in args.prompt_file:
-        for cand in (f, os.path.join(prompt_dir, f), os.path.join(prompt_dir, f + ".txt")):
-            if os.path.isfile(cand):
-                break
-        else:
-            sys.exit(f"prompt file not found: {f} (looked in ./ and {prompt_dir}/)")
+        cand = find_prompt_file(f, prompt_dir)
         name = os.path.splitext(os.path.basename(cand))[0]
         with open(cand, encoding="utf-8") as fh:
             jobs.append((name, fh.read(), os.path.relpath(cand)))
     if not jobs:
-        for fn in sorted(os.listdir(prompt_dir)):
-            if fn.endswith(".txt"):
-                path = os.path.join(prompt_dir, fn)
-                with open(path, encoding="utf-8") as fh:
-                    jobs.append((os.path.splitext(fn)[0], fh.read(), os.path.relpath(path)))
-    if not jobs:
-        sys.exit(f"no prompts found in {prompt_dir}/")
+        jobs = load_prompt_dir(prompt_dir)
     return jobs
 
 

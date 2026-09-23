@@ -14,7 +14,6 @@ python3 -c "import requests" 2>/dev/null || pip install requests
 
 # prompts/ and logs/ are created automatically on first run; add a sample prompt now
 mkdir -p prompts logs
-[[ -e prompts/example.txt ]] || echo "What is a LLM? Answer in two short paragraphs." > prompts/example.txt
 
 echo
 echo "Setup done. Set your server details once:"
