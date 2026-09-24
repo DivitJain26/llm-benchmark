@@ -329,7 +329,7 @@ def write_log(path, name, prompt, system, summary, runs, response_text, reasonin
         lines.append(f"[prompt]  inline  ({words} words{note})")
     lines.append(short_text(prompt))
     lines.append("")
-    if reasoning_text:
+    if reasoning_text and not (args is not None and args.no_reasoning_log):
         lines.append("[reasoning]")
         lines.append(reasoning_text.rstrip())
         lines.append("")
@@ -372,6 +372,8 @@ def build_parser(description="Benchmark a single vLLM request"):
     p.add_argument("--no-gpu", action="store_true", help="don't sample GPU utilisation with nvidia-smi")
     p.add_argument("--gpu-interval", type=float, default=0.25, help="seconds between nvidia-smi samples")
     p.add_argument("--show-reasoning", action="store_true", help="also print the model's reasoning/thinking in the terminal")
+    p.add_argument("--no-reasoning-log", action="store_true",
+                   help="don't write the model's reasoning/thinking to the log (metrics + response only)")
     p.add_argument("--quiet", action="store_true", help="don't print the response in the terminal (it is still written to the log)")
     return p
 

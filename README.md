@@ -186,8 +186,8 @@ done
 # fixed number of requests, queued: 64 requests, 16 at a time, repeated 3 times and averaged
 python3 bench_vllm_concurrent.py --prompt-file summary --concurrency 16 --requests 64 --runs 3
 
-# open loop: can the server take 5 requests per second for 5 minutes?
-python3 bench_vllm_concurrent.py --mix --rate 5 --duration 300 --drain 120 --max-tokens 2000
+# open loop: can the server take 5 requests per second for 5 minutes? (log without the reasoning text)
+python3 bench_vllm_concurrent.py --mix --rate 5 --duration 300 --drain 120 --max-tokens 2000 --no-reasoning-log
 
 # 10 minute soak with all prompts, 1 s timeline buckets
 python3 bench_vllm_concurrent.py --mix --concurrency 16 --duration 600 --bucket 30
@@ -308,8 +308,8 @@ max_tokens: 4000  |  temperature: 0.3  |  reasoning_effort: medium  |  url: http
 
 These models stream their reasoning before the answer. vLLM sends it as `reasoning_content` (Qwen3,
 DeepSeek) or `reasoning` (gpt-oss on newer vLLM); both are read. The first reasoning token counts as
-TTFT. The reasoning is written to the log under `[reasoning]` and printed with `--show-reasoning`.
-vLLM's completion token count includes the reasoning tokens.
+TTFT. The reasoning is written to the log under `[reasoning]` (skip it with `--no-reasoning-log`) and
+printed with `--show-reasoning`. vLLM's completion token count includes the reasoning tokens.
 
 Controls:
 
@@ -351,6 +351,7 @@ what you need to add support for a new model.
 | `--log-dir` | `logs` | where logs go |
 | `--log-words N` | `30` | how many words of each prompt to copy into the log |
 | `--show-reasoning` | | print the reasoning in the terminal too |
+| `--no-reasoning-log` | | keep the reasoning out of the log: metrics and response only |
 | `--quiet` | | do not print responses in the terminal (they still go to the log) |
 | `--no-gpu` | | skip `nvidia-smi` sampling |
 | `--gpu-interval S` | `0.25` | seconds between `nvidia-smi` samples |

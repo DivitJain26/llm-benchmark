@@ -567,7 +567,7 @@ def write_log(path, label, jobs, args, avg, batches, gpu_interval):
     to_show = ok if args.all_responses else ok[:1]
     for r in to_show:
         tag = f"request {r['idx'] + 1} of {len(last)}" + ("" if args.all_responses else " (others omitted; use --all-responses)")
-        if r["reasoning"]:
+        if r["reasoning"] and not args.no_reasoning_log:
             L.append(f"[reasoning]  {tag}")
             L.append(r["reasoning"].rstrip())
             L.append("")
