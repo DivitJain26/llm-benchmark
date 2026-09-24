@@ -11,6 +11,11 @@ Same flags as bench_vllm.py, plus:
   --requests M        total requests per prompt                  (default = concurrency)
   --duration S        keep N requests in flight for S seconds instead of a fixed count
                       (new requests stop being sent at the deadline; in-flight ones finish)
+  --rate R            OPEN LOOP: send R new requests every second for --duration seconds, no matter
+                      how many are still in flight (--concurrency is ignored). Shows how the server
+                      behaves at a fixed arrival rate: backlog growth, TTFT climbing, errors.
+  --max-in-flight M   safety cap for --rate: skip new requests while M are in flight (default 2000)
+  --drain S           after the deadline wait at most S seconds for in-flight requests (default: wait)
   --bucket S          timeline bucket size in seconds            (default: auto, ~10-12 buckets)
   --mix               one batch cycling round-robin through EVERY prompt in prompts/
   --all-responses     write every response to the log (default: only the first)
@@ -22,6 +27,7 @@ Examples:
   python bench_vllm_concurrent.py --prompt-file summary --concurrency 16 --requests 64 --thinking off
   python bench_vllm_concurrent.py --mix --concurrency 8 --requests 32 --runs 3
   python bench_vllm_concurrent.py --mix --concurrency 16 --duration 120 --thinking off   # 2 min soak
+  python bench_vllm_concurrent.py --mix --rate 5 --duration 300 --drain 120             # 5 req/s open loop
 """
 
 import math
@@ -86,43 +92,38 @@ def safe_div(a, b):
 def run_batch(args, model, jobs, gpu):
     """
     jobs: [(name, prompt, ppath), ...] cycled round-robin: request i uses jobs[i % len(jobs)].
-    `args.concurrency` worker threads each keep pulling the next request until either
-    `args.requests` have been handed out (count mode) or `args.duration` seconds have passed
-    (duration mode; requests already in flight run to completion).
+
+    closed loop (default): `args.concurrency` worker threads each keep pulling the next request until
+        `args.requests` have been handed out (count mode) or `args.duration` seconds have passed.
+    open loop (--rate):    one new request every 1/rate seconds on its own thread, for `args.duration`
+        seconds (or `args.requests` in total), regardless of how many are in flight.
+    In both modes requests already in flight run to completion after the deadline, up to --drain
+    seconds; anything still running after that is reported as unfinished.
     Returns (summary_dict, results_list). GPU is sampled across the whole batch.
     """
     results = []
     lock = threading.Lock()
-    counter = {"next": 0, "done": 0, "failed": 0}
+    counter = {"next": 0, "done": 0, "failed": 0, "skipped": 0, "peak_in_flight": 0, "send_lag_max": 0.0}
+    inflight = {}                     # idx -> (name, start_s) for requests currently running
+    state = {"closed": False}
     if gpu:
         gpu.start()
     started_at = time.strftime("%Y-%m-%d %H:%M:%S")
     t0 = time.perf_counter()
     deadline = t0 + args.duration if args.duration else None
 
-    def next_request():
-        with lock:
-            i = counter["next"]
-            if deadline is None:
-                if i >= args.requests:
-                    return None
-            elif time.perf_counter() >= deadline:
-                return None
-            counter["next"] = i + 1
-        name, prompt, _ = jobs[i % len(jobs)]
-        return i, name, prompt
-
     def progress(i, name, m=None, err=None):
         with lock:
             counter["done"] += 1
             if err is not None:
                 counter["failed"] += 1
-            done, nfail = counter["done"], counter["failed"]
+            done, nfail, n_in = counter["done"], counter["failed"], len(inflight)
         failed_tag = f", {nfail} failed" if nfail else ""
+        in_tag = f", {n_in} in flight" if args.rate else ""
         if deadline is None:
-            tag = f"[{done}/{args.requests}{failed_tag}]"
+            tag = f"[{done}/{args.requests}{failed_tag}{in_tag}]"
         else:
-            tag = f"[{done} done{failed_tag}, {fmt(time.perf_counter() - t0, 0)}/{fmt(args.duration, 0)}s]"
+            tag = f"[{done} done{failed_tag}{in_tag}, {fmt(time.perf_counter() - t0, 0)}/{fmt(args.duration, 0)}s]"
         if err is None:
             print(f"  {tag} #{i + 1} {name}: ttft {fmt(m['ttft_s'])}s  total {fmt(m['total_time_s'])}s  "
                   f"{fmt(m['completion_tokens'])} tok  {fmt(m['generation_tokens_per_s'], 1)} tok/s"
@@ -130,60 +131,149 @@ def run_batch(args, model, jobs, gpu):
         else:
             print(f"  {tag} #{i + 1} {name}: FAILED {err!r}")
 
-    def worker():
-        while True:
-            nr = next_request()
-            if nr is None:
+    def run_request(i, name, prompt, sched_s=None):
+        start = time.perf_counter() - t0
+        with lock:
+            inflight[i] = (name, start)
+            counter["peak_in_flight"] = max(counter["peak_in_flight"], len(inflight))
+            if sched_s is not None:
+                counter["send_lag_max"] = max(counter["send_lag_max"], start - sched_s)
+        try:
+            m, resp, reas = run_once(args.url, args.api_key, model, prompt, args.system,
+                                     args.max_tokens, args.temperature, None, args.thinking,
+                                     args.reasoning_effort)
+            m["start_s"] = start
+            m["end_s"] = time.perf_counter() - t0
+            m["sched_s"] = sched_s
+            ct = m["completion_tokens"]
+            m["itl_s"] = safe_div(m["generation_time_s"], ct - 1) if ct and ct > 1 else None
+            rec = {"idx": i, "name": name, "ok": True, "m": m, "response": resp, "reasoning": reas}
+            err = None
+        except Exception as e:                                    # noqa: BLE001
+            rec = {"idx": i, "name": name, "ok": False, "error": repr(e),
+                   "start_s": start, "end_s": time.perf_counter() - t0}
+            err = e
+        with lock:
+            inflight.pop(i, None)
+            if state["closed"]:            # batch already summarised (drain timeout): drop silently
                 return
-            i, name, prompt = nr
-            start = time.perf_counter() - t0
-            try:
-                m, resp, reas = run_once(args.url, args.api_key, model, prompt, args.system,
-                                         args.max_tokens, args.temperature, None, args.thinking,
-                                         args.reasoning_effort)
-                m["start_s"] = start
-                m["end_s"] = time.perf_counter() - t0
-                ct = m["completion_tokens"]
-                m["itl_s"] = safe_div(m["generation_time_s"], ct - 1) if ct and ct > 1 else None
-                with lock:
-                    results.append({"idx": i, "name": name, "ok": True, "m": m,
-                                    "response": resp, "reasoning": reas})
-                progress(i, name, m=m)
-            except Exception as e:                                # noqa: BLE001
-                with lock:
-                    results.append({"idx": i, "name": name, "ok": False, "error": repr(e),
-                                    "start_s": start, "end_s": time.perf_counter() - t0})
-                progress(i, name, err=e)
+            results.append(rec)
+        progress(i, name, m=rec.get("m"), err=err)
 
-    threads = [threading.Thread(target=worker, daemon=True) for _ in range(args.concurrency)]
+    if args.rate:
+        # ---- open loop: fixed arrival rate, one thread per request
+        interval = 1.0 / args.rate
+        total = None if args.duration else args.requests
+        threads = []
+        i = 0
+        while True:
+            if total is not None and i >= total:
+                break
+            target = t0 + i * interval
+            wait = target - time.perf_counter()
+            if wait > 0:
+                if deadline is not None and target >= deadline:
+                    break
+                time.sleep(wait)
+            if deadline is not None and time.perf_counter() >= deadline:
+                break
+            name, prompt, _ = jobs[i % len(jobs)]
+            with lock:
+                n_in = len(inflight)
+            if n_in >= args.max_in_flight:
+                with lock:
+                    counter["skipped"] += 1
+                if counter["skipped"] in (1, 10, 100, 1000):
+                    print(f"  [skipped #{i + 1}: {n_in} requests in flight >= --max-in-flight {args.max_in_flight}]")
+            else:
+                t = threading.Thread(target=run_request, args=(i, name, prompt, i * interval), daemon=True)
+                t.start()
+                threads.append(t)
+            i += 1
+        scheduled = i
+    else:
+        # ---- closed loop: fixed number of workers
+        def next_request():
+            with lock:
+                i = counter["next"]
+                if deadline is None:
+                    if i >= args.requests:
+                        return None
+                elif time.perf_counter() >= deadline:
+                    return None
+                counter["next"] = i + 1
+            name, prompt, _ = jobs[i % len(jobs)]
+            return i, name, prompt
+
+        def worker():
+            while True:
+                nr = next_request()
+                if nr is None:
+                    return
+                run_request(*nr)
+
+        threads = [threading.Thread(target=worker, daemon=True) for _ in range(args.concurrency)]
+        for t in threads:
+            t.start()
+        scheduled = None
+
+    # ---- drain: wait for in-flight requests, up to --drain seconds after the deadline
+    drain_end = None
+    if args.drain is not None:
+        drain_end = (deadline if deadline is not None else time.perf_counter()) + args.drain
     for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
-    wall = time.perf_counter() - t0
+        if drain_end is None:
+            t.join()
+        else:
+            left = drain_end - time.perf_counter()
+            if left > 0:
+                t.join(left)
+    with lock:
+        state["closed"] = True
+        wall = time.perf_counter() - t0
+        for i, (name, start) in sorted(inflight.items()):
+            results.append({"idx": i, "name": name, "ok": False, "unfinished": True,
+                            "error": f"still running after --drain {fmt(args.drain, 1)} s",
+                            "start_s": start, "end_s": None})
+        drained = not inflight
     ended_at = time.strftime("%Y-%m-%d %H:%M:%S")
     if gpu:
         gpu.stop()
+    if not drained:
+        print(f"  [drain timeout: {sum(1 for r in results if r.get('unfinished'))} requests still running; "
+              f"they are reported as unfinished]")
 
     results.sort(key=lambda r: r["idx"])
+    extra = {"scheduled": scheduled if scheduled is not None else len(results),
+             "skipped": counter["skipped"], "peak_in_flight": counter["peak_in_flight"],
+             "send_lag_max": counter["send_lag_max"] if args.rate else None}
     return summarize(args, model, jobs, results, wall, started_at, ended_at,
-                     gpu.summary() if gpu else None), results
+                     gpu.summary() if gpu else None, extra), results
 
 
-def summarize(args, model, jobs, results, wall, started_at, ended_at, gpu_summary):
+def summarize(args, model, jobs, results, wall, started_at, ended_at, gpu_summary, extra):
     ok = [r["m"] for r in results if r["ok"]]
-    failed = [r for r in results if not r["ok"]]
+    unfinished = [r for r in results if r.get("unfinished")]
+    failed = [r for r in results if not r["ok"] and not r.get("unfinished")]
     prompt_tok = sum(m["prompt_tokens"] or 0 for m in ok)
     comp_tok = sum(m["completion_tokens"] or 0 for m in ok)
-    busy = sum((r["m"]["total_time_s"] if r["ok"] else r["end_s"] - r["start_s"]) for r in results)
+    busy = sum((r["m"]["total_time_s"] if r["ok"] else (r_end(r) if r["end_s"] is not None else wall) - r["start_s"])
+               for r in results)
 
     s = {
         "model": model,
         "started_at": started_at,
         "ended_at": ended_at,
         "concurrency": args.concurrency,
+        "rate": args.rate,
         "duration_s": args.duration,
-        "requests": len(results),
+        "requests": len(results),                                # sent (incl. unfinished)
+        "scheduled": extra["scheduled"],
+        "skipped": extra["skipped"],
+        "sent_per_s": safe_div(len(results), args.duration or wall),
+        "send_lag_max": extra["send_lag_max"],
+        "peak_in_flight": extra["peak_in_flight"],
+        "unfinished": len(unfinished),
         "ok": len(ok),
         "failed": len(failed),
         "error_rate": safe_div(len(failed), len(results)),
@@ -258,7 +348,7 @@ def summarize(args, model, jobs, results, wall, started_at, ended_at, gpu_summar
         for k in range(n_b):
             lo, hi = k * bucket, min((k + 1) * bucket, wall)
             done = [m for m in ok if lo <= m["end_s"] < hi or (k == n_b - 1 and m["end_s"] >= lo)]
-            fail = sum(1 for r in failed if lo <= r["end_s"] < hi)
+            fail = sum(1 for r in failed if lo <= r_end(r) < hi)
             started = sum(1 for r in results if lo <= r_start(r) < hi)
             width = hi - lo
             ctok = sum(m["completion_tokens"] or 0 for m in done)
@@ -284,7 +374,10 @@ def r_start(r):
 
 
 def r_end(r):
-    return r["m"]["end_s"] if r["ok"] else r["end_s"]
+    """End time relative to the batch; +inf for requests still running at the drain timeout."""
+    if r["ok"]:
+        return r["m"]["end_s"]
+    return r["end_s"] if r["end_s"] is not None else float("inf")
 
 
 def average_summaries(sums):
@@ -292,7 +385,8 @@ def average_summaries(sums):
     avg = dict(sums[0])
     scalar = ["wall_s", "requests_per_s", "avg_in_flight", "prompt_tokens_total", "completion_tokens_total",
               "total_tokens", "prompt_tokens_avg", "completion_tokens_avg", "completion_tok_per_s",
-              "total_tok_per_s", "requests", "ok", "failed", "error_rate", "truncated", "empty"]
+              "total_tok_per_s", "requests", "ok", "failed", "error_rate", "truncated", "empty",
+              "scheduled", "skipped", "sent_per_s", "send_lag_max", "peak_in_flight", "unfinished"]
     for k in scalar:
         vals = [s[k] for s in sums if s[k] is not None]
         avg[k] = sum(vals) / len(vals) if vals else None
@@ -321,14 +415,26 @@ def average_summaries(sums):
 
 def summary_lines(s, gpu_interval):
     L = []
-    L.append("[load]")
-    L.append(f"  concurrency          : {s['concurrency']}   (achieved avg in flight {fmt(s['avg_in_flight'], 2)})")
+    if s.get("rate"):
+        L.append("[load]  open loop: a new request every 1/rate s regardless of how many are in flight")
+        L.append(f"  target rate          : {fmt(s['rate'], 2)} req/s   (sent {fmt(s['requests'], 0)} = {fmt(s['sent_per_s'], 2)} req/s, "
+                 f"max send lag {fmt(s['send_lag_max'])} s)")
+        if s.get("skipped"):
+            L.append(f"  skipped              : {fmt(s['skipped'], 0)}  (not sent: --max-in-flight reached)")
+        L.append(f"  in flight            : peak {fmt(s['peak_in_flight'], 0)}, avg {fmt(s['avg_in_flight'], 1)}"
+                 + (f", at deadline {fmt(s['window']['in_flight_at_deadline'], 0)}" if s.get("window") else "")
+                 + "   (rising = server can't keep up with the rate)")
+    else:
+        L.append("[load]  closed loop: a fixed number of requests in flight")
+        L.append(f"  concurrency          : {s['concurrency']}   (achieved avg in flight {fmt(s['avg_in_flight'], 2)})")
     if s.get("duration_s"):
         L.append(f"  duration             : {fmt(s['duration_s'], 1)} s   (no new requests after this; in-flight ones finish)")
     L.append(f"  requests             : {fmt(s['requests'], 0)}  (ok {fmt(s['ok'], 0)})")
     L.append(f"  failed               : {fmt(s['failed'], 0)}  ({fmt((s['error_rate'] or 0) * 100, 1)} % of requests)")
+    if s.get("unfinished"):
+        L.append(f"  unfinished           : {fmt(s['unfinished'], 0)}  (still running at the --drain timeout; excluded from latency stats)")
     L.append(f"  wall time            : {fmt(s['wall_s'])} s")
-    L.append(f"  requests/s           : {fmt(s['requests_per_s'], 2)}")
+    L.append(f"  completed/s          : {fmt(s['requests_per_s'], 2)}")
     w = s.get("window")
     if w:
         L.append("")
@@ -402,6 +508,8 @@ def per_request_lines(results, duration=None):
                      f"{fmt(m['itl_s'] * 1000 if m['itl_s'] is not None else None, 1):>6}   "
                      f"{fmt(m['prompt_tokens']):>10}   {fmt(m['completion_tokens']):>8}   "
                      f"{fmt(m['generation_tokens_per_s'], 1):>9}   {(m.get('finish_reason') or '-'):>6}   {r['name']}")
+        elif r.get("unfinished"):
+            L.append(f"  {r['idx'] + 1:>3}   {fmt(r['start_s']):>7}        -   UNFINISHED  {r['error']}   {r['name']}")
         else:
             L.append(f"  {r['idx'] + 1:>3}   {fmt(r['start_s']):>7}  {fmt(r['end_s']):>7}   FAILED  {r['error']}   {r['name']}")
     return L
@@ -412,7 +520,8 @@ def write_log(path, label, jobs, args, avg, batches, gpu_interval):
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
     L = []
     L.append("=" * 72)
-    head = f"{ts}  |  model: {avg['model']}  |  prompt: {label}  |  concurrency: {avg['concurrency']}  |  "
+    head = f"{ts}  |  model: {avg['model']}  |  prompt: {label}  |  "
+    head += f"rate: {fmt(args.rate, 2)} req/s  |  " if args.rate else f"concurrency: {avg['concurrency']}  |  "
     if args.duration:
         head += f"duration: {fmt(args.duration, 1)}s  |  requests: {fmt(avg['requests'], 0)}  |  runs: {len(batches)}"
     else:
@@ -422,6 +531,7 @@ def write_log(path, label, jobs, args, avg, batches, gpu_interval):
     L.append(head)
     L.append(f"max_tokens: {args.max_tokens}  |  temperature: {args.temperature}"
              + (f"  |  reasoning_effort: {args.reasoning_effort}" if args.reasoning_effort else "")
+             + (f"  |  drain: {fmt(args.drain, 1)}s" if args.drain is not None else "")
              + f"  |  url: {args.url}  |  started: {batches[0][0]['started_at']}  |  ended: {batches[-1][0]['ended_at']}")
     L.append("=" * 72)
     L.append("")
@@ -474,7 +584,16 @@ def write_log(path, label, jobs, args, avg, batches, gpu_interval):
 
 def main():
     p = build_parser("Concurrent vLLM load benchmark (same flags as bench_vllm.py)")
-    p.add_argument("--concurrency", type=int, default=4, help="requests in flight at once")
+    p.add_argument("--concurrency", type=int, default=None,
+                   help="closed loop: requests in flight at once (default 4; ignored with --rate)")
+    p.add_argument("--rate", type=float, default=None, metavar="REQ_PER_S",
+                   help="open loop: send this many new requests per second for --duration seconds (or "
+                        "--requests in total), regardless of how many are in flight")
+    p.add_argument("--max-in-flight", type=int, default=2000,
+                   help="--rate safety cap: skip new requests while this many are in flight (default 2000)")
+    p.add_argument("--drain", type=float, default=None, metavar="SECONDS",
+                   help="after the deadline wait at most this long for in-flight requests; the rest are "
+                        "reported as unfinished (default: wait for all)")
     p.add_argument("--requests", type=int, default=None,
                    help="total requests per prompt (default: same as --concurrency; ignored with --duration)")
     p.add_argument("--duration", type=float, default=None, metavar="SECONDS",
@@ -488,11 +607,28 @@ def main():
     p.add_argument("--all-responses", action="store_true", help="log every response (default: only the first)")
     args = p.parse_args()
     base.LOG_WORDS = args.log_words
-    if args.concurrency < 1:
+    if args.rate is not None:
+        if args.rate <= 0:
+            sys.exit("--rate must be > 0")
+        if args.duration is None and args.requests is None:
+            sys.exit("--rate needs --duration SECONDS (or --requests N for a fixed total)")
+        if args.concurrency is not None:
+            print("note: --concurrency is ignored with --rate (open loop has no in-flight limit; see --max-in-flight)")
+        args.concurrency = None
+        if args.max_in_flight < 1:
+            sys.exit("--max-in-flight must be >= 1")
+    elif args.concurrency is None:
+        args.concurrency = 4
+    if args.concurrency is not None and args.concurrency < 1:
         sys.exit("--concurrency must be >= 1")
     if args.bucket is not None and args.bucket <= 0:
         sys.exit("--bucket must be > 0 seconds")
-    if args.duration is not None:
+    if args.drain is not None and args.drain < 0:
+        sys.exit("--drain must be >= 0 seconds")
+    if args.rate is not None and args.duration is None:      # fixed total at a fixed rate
+        if args.requests < 1:
+            sys.exit("--requests must be >= 1")
+    elif args.duration is not None:
         if args.duration <= 0:
             sys.exit("--duration must be > 0 seconds")
         if args.requests is not None:
@@ -521,8 +657,11 @@ def main():
 
     load_desc = (f"duration per batch: {fmt(args.duration, 1)}s" if args.duration
                  else f"requests per batch: {args.requests}")
+    mode_desc = (f"open loop: {fmt(args.rate, 2)} req/s (max in flight {args.max_in_flight})" if args.rate
+                 else f"concurrency: {args.concurrency}")
     print(f"using model: {model}")
-    print(f"concurrency: {args.concurrency}   {load_desc}   runs: {args.runs}"
+    print(f"{mode_desc}   {load_desc}   runs: {args.runs}"
+          + (f"   drain: {fmt(args.drain, 1)}s" if args.drain is not None else "")
           + (f"   thinking: {args.thinking}" if args.thinking else "")
           + (f"   gpu sampling: {args.gpu_interval}s" if gpu else "   gpu sampling: off"))
 
@@ -535,8 +674,12 @@ def main():
         groups = [(name, [(name, prompt, ppath)]) for name, prompt, ppath in jobs]
 
     for label, group_jobs in groups:
-        what = (f"{fmt(args.duration, 1)}s at concurrency {args.concurrency}" if args.duration
-                else f"{args.requests} requests")
+        if args.rate:
+            what = f"{fmt(args.rate, 2)} req/s " + (f"for {fmt(args.duration, 1)}s" if args.duration
+                                                     else f"x {args.requests} requests")
+        else:
+            what = (f"{fmt(args.duration, 1)}s at concurrency {args.concurrency}" if args.duration
+                    else f"{args.requests} requests")
         print(f"\n################ {label}  ({what} x {args.runs} run(s)) ################")
         batches = []
         for i in range(args.runs):
@@ -566,8 +709,13 @@ def main():
         write_log(log_path, label, group_jobs, args, avg, batches, args.gpu_interval)
         tot_req = sum(b[0]["requests"] for b in batches)
         tot_fail = sum(b[0]["failed"] for b in batches)
-        verdict = (f"{tot_fail} of {tot_req} requests FAILED ({fmt(tot_fail / tot_req * 100, 1)} %)" if tot_fail
-                   else f"all {tot_req} requests ok")
+        tot_unf = sum(b[0]["unfinished"] for b in batches)
+        if not tot_fail and not tot_unf:
+            verdict = f"all {tot_req} requests ok"
+        else:
+            verdict = f"{tot_req} requests: {tot_req - tot_fail - tot_unf} ok, {tot_fail} FAILED ({fmt(tot_fail / tot_req * 100, 1)} %)"
+            if tot_unf:
+                verdict += f", {tot_unf} unfinished at drain timeout"
         print(f"\n{label}: {verdict}   ->   logged to {os.path.relpath(log_path)}")
 
 
