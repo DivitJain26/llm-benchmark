@@ -122,7 +122,11 @@ def pick_model(base_url: str, api_key=None) -> str:
         print("invalid choice")
 
 
-def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, gpu=None, thinking=None):
+REASONING_FIELDS = ("reasoning_content", "reasoning")   # vLLM (Qwen3, DeepSeek) / newer vLLM + gpt-oss
+
+
+def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, gpu=None, thinking=None,
+             reasoning_effort=None):
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -138,12 +142,16 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
     }
     if thinking is not None:   # only meaningful for models with a thinking mode (Qwen3, ...)
         payload["chat_template_kwargs"] = {"enable_thinking": thinking == "on"}
+    if reasoning_effort:       # gpt-oss and other models that take an effort level
+        payload["reasoning_effort"] = reasoning_effort
 
     text_parts = []
     reasoning_parts = []
     usage = {}
     ttft = None
     finish_reason = None
+    delta_keys = set()      # which fields the stream actually carried (to explain an empty response)
+    n_deltas = 0
 
     if gpu:
         gpu.start()
@@ -173,7 +181,9 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
                 if choice.get("finish_reason"):
                     finish_reason = choice["finish_reason"]     # "stop" or "length" (= hit max_tokens)
                 delta = choice.get("delta", {})
-                reasoning = delta.get("reasoning_content")   # Qwen3 "thinking"
+                n_deltas += 1
+                delta_keys.update(k for k, v in delta.items() if v not in (None, "", [], {}))
+                reasoning = next((delta.get(k) for k in REASONING_FIELDS if delta.get(k)), None)
                 content = delta.get("content")
                 if reasoning:
                     if ttft is None:
@@ -210,8 +220,33 @@ def run_once(base_url, api_key, model, prompt, system, max_tokens, temperature, 
         "response_chars": len(response_text),
         "reasoning_chars": len(reasoning_text),
         "finish_reason": finish_reason,
+        "delta_keys": sorted(delta_keys),
+        "n_deltas": n_deltas,
         "gpu": gpu.summary() if gpu else None,
     }, response_text, reasoning_text
+
+
+def finish_note(m):
+    """'length (hit max_tokens)' etc. for the finish_reason line."""
+    fr = m.get("finish_reason")
+    if fr is None:
+        return "-"
+    return fr + (" (hit max_tokens: output was cut off)" if fr == "length" else "")
+
+
+def empty_response_note(m, response_text, reasoning_text):
+    """Why the response is empty, or None if it is not."""
+    if response_text.strip():
+        return None
+    ct = m.get("completion_tokens")
+    keys = m.get("delta_keys") or []
+    if reasoning_text.strip():
+        return (f"(empty: all {fmt(ct, 0)} completion tokens went into reasoning, see [reasoning]; "
+                f"raise --max-tokens or lower --reasoning-effort / turn thinking off)")
+    if ct:
+        return (f"(empty: {fmt(ct, 0)} completion tokens were generated but no content/reasoning was received; "
+                f"stream delta fields seen: {keys or 'none'} in {m.get('n_deltas', 0)} deltas)")
+    return "(empty: the model produced no tokens)"
 
 
 def fmt(v, nd=3):
@@ -228,6 +263,7 @@ def print_metrics(m, label=""):
     print(f"total tokens         : {fmt(m['total_tokens'])}")
     print(f"generation tok/s     : {fmt(m['generation_tokens_per_s'], 1)}")
     print(f"overall tok/s        : {fmt(m['overall_tokens_per_s'], 1)}")
+    print(f"finish reason        : {finish_note(m)}")
     if m.get("gpu") is not None:
         print("gpu (this run)       :")
         print("\n".join(GpuSampler.lines(m["gpu"])))
@@ -243,7 +279,7 @@ def short_text(text, n=None):
 
 
 def write_log(path, name, prompt, system, summary, runs, response_text, reasoning_text="",
-              prompt_path=None, thinking=None):
+              prompt_path=None, thinking=None, args=None):
     """Append one clean block per benchmark to a single .txt log."""
     ts = time.strftime("%Y-%m-%d %H:%M:%S")
     lines = []
@@ -252,6 +288,11 @@ def write_log(path, name, prompt, system, summary, runs, response_text, reasonin
     if thinking:
         head += f"  |  thinking: {thinking}"
     lines.append(head)
+    if args is not None:
+        sub = f"max_tokens: {args.max_tokens}  |  temperature: {args.temperature}  |  url: {args.url}"
+        if args.reasoning_effort:
+            sub += f"  |  reasoning_effort: {args.reasoning_effort}"
+        lines.append(sub)
     lines.append("=" * 72)
     lines.append("")
     lines.append("[metrics]")
@@ -262,6 +303,7 @@ def write_log(path, name, prompt, system, summary, runs, response_text, reasonin
     lines.append(f"  total tokens         : {fmt(summary['total_tokens'])}")
     lines.append(f"  generation tok/s     : {fmt(summary['generation_tokens_per_s'], 1)}")
     lines.append(f"  overall tok/s        : {fmt(summary['overall_tokens_per_s'], 1)}")
+    lines.append(f"  finish reason        : {finish_note(runs[-1])}")
     if len(runs) > 1:
         lines.append("")
         lines.append("[per run]  ttft_s / total_s / completion_tokens / gen_tok_s")
@@ -291,7 +333,8 @@ def write_log(path, name, prompt, system, summary, runs, response_text, reasonin
         lines.append("[reasoning]")
         lines.append(reasoning_text.rstrip())
         lines.append("")
-    lines.append("[response]")
+    note = empty_response_note(runs[-1], response_text, reasoning_text)
+    lines.append("[response]" + (f"  {note}" if note else ""))
     lines.append(response_text.rstrip())
     lines.append("")
     lines.append("")
@@ -323,6 +366,8 @@ def build_parser(description="Benchmark a single vLLM request"):
     p.add_argument("--runs", type=int, default=1, help="repeat N times and average")
     p.add_argument("--thinking", choices=["on", "off"], default=None,
                    help="turn thinking mode on/off (only for models that have one, e.g. Qwen3)")
+    p.add_argument("--reasoning-effort", choices=["low", "medium", "high"], default=None,
+                   help="reasoning_effort for models that take one (gpt-oss): low keeps more of --max-tokens for the answer")
     p.add_argument("--log-words", type=int, default=30, help="max prompt words shown in the log")
     p.add_argument("--no-gpu", action="store_true", help="don't sample GPU utilisation with nvidia-smi")
     p.add_argument("--gpu-interval", type=float, default=0.25, help="seconds between nvidia-smi samples")
@@ -419,7 +464,8 @@ def main():
     jobs = load_jobs(args, prompt_dir)
     model = choose_model(args)
     print(f"using model: {model}")
-    print(f"prompts: {len(jobs)}   runs each: {args.runs}" + (f"   thinking: {args.thinking}" if args.thinking else ""))
+    print(f"prompts: {len(jobs)}   runs each: {args.runs}" + (f"   thinking: {args.thinking}" if args.thinking else "")
+          + (f"   reasoning_effort: {args.reasoning_effort}" if args.reasoning_effort else ""))
     gpu = make_gpu_sampler(args)
 
     for name, prompt, ppath in jobs:
@@ -429,7 +475,7 @@ def main():
         for i in range(args.runs):
             m, response_text, reasoning_text = run_once(args.url, args.api_key, model, prompt,
                                                         args.system, args.max_tokens, args.temperature,
-                                                        gpu, args.thinking)
+                                                        gpu, args.thinking, args.reasoning_effort)
             runs.append(m)
             print_metrics(m, f"run {i + 1}/{args.runs}")
 
@@ -450,12 +496,13 @@ def main():
             if reasoning_text and args.show_reasoning:
                 print("\n--- reasoning (last run) ---")
                 print(reasoning_text)
-            print("\n--- response (last run) ---")
+            note = empty_response_note(runs[-1], response_text, reasoning_text)
+            print("\n--- response (last run) ---" + (f"  {note}" if note else ""))
             print(response_text)
 
         log_path = args.log or os.path.join(log_dir, f"{name}.txt")
         write_log(log_path, name, prompt, args.system, avg, runs, response_text, reasoning_text,
-                  prompt_path=ppath, thinking=args.thinking)
+                  prompt_path=ppath, thinking=args.thinking, args=args)
         print(f"\nlogged to {os.path.relpath(log_path)}")
 
 if __name__ == "__main__":

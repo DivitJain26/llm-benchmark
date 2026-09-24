@@ -49,12 +49,18 @@ Replace `./bench_vllm.sh` with `python3 bench_vllm.py` for the Python version �
 `--prompt-file` accepts a name (`summary`), a filename (`summary.txt`) or a path such as
 `prompts/summary.txt` (resolved against the script's folder too, so it works from any working directory).
 
-## Qwen3 thinking
+## Reasoning models (Qwen3, gpt-oss, DeepSeek ...)
 
-Qwen3 streams its reasoning as `reasoning_content` before the answer. The script counts the first
-reasoning token as time-to-first-token, saves the reasoning in the log under `[reasoning]`, and
-prints it in the terminal only if you pass `--show-reasoning`. Completion tokens from vLLM include
-the reasoning tokens.
+These models stream their reasoning before the answer, as `reasoning_content` (Qwen3, DeepSeek) or
+`reasoning` (gpt-oss on newer vLLM). Both are read. The first reasoning token counts as
+time-to-first-token, the reasoning goes to the log under `[reasoning]`, and it is printed in the
+terminal only with `--show-reasoning`. Completion tokens from vLLM include the reasoning tokens.
+
+If `[response]` is empty, the log says why. The usual cause is `finish reason: length`: the model
+spent the whole `--max-tokens` budget on reasoning and was cut off before the answer. Raise
+`--max-tokens`, or for gpt-oss pass `--reasoning-effort low` (Qwen3: `--thinking off`). The log
+header records the effort level, and the concurrent bench counts `hit max_tokens` and
+`empty responses` per batch so you can see when a whole run produced no answers.
 
 ## Choosing the model
 
@@ -224,17 +230,19 @@ GPU numbers and per-request table) per run.
 | `--temperature` | `0.0` | sampling temperature |
 | `--runs` | `1` | repeat N times and print the average |
 | `--thinking` | model default | `on` / `off` — only for models with a thinking mode (Qwen3 etc.); sends vLLM's `enable_thinking` |
+| `--reasoning-effort` | model default | `low` / `medium` / `high` — for models that take one (gpt-oss); sends `reasoning_effort`. `low` leaves more of `--max-tokens` for the answer |
 | `--log-words` | `30` | max prompt words written to the log (file name and word count are always logged) |
 | `--no-gpu` | off | skip GPU sampling |
 | `--gpu-interval` | `0.25` | seconds between `nvidia-smi` samples |
-| `--show-reasoning` | off | print Qwen3 reasoning in the terminal too |
+| `--show-reasoning` | off | print the model's reasoning in the terminal too |
 | `--quiet` | off | don't print the response in the terminal (still goes to the log) |
 
 ## Thinking mode (Qwen3 and similar)
 
 Some models can run with or without a "thinking" phase. `--thinking off` disables it (much lower TTFT
 and completion tokens), `--thinking on` forces it; without the flag the model's default is used. The
-setting is recorded in the log header. Models without a thinking mode ignore the flag.
+setting is recorded in the log header. Models without a thinking mode ignore the flag. gpt-oss
+has no on/off switch; use `--reasoning-effort low|medium|high` instead.
 
 ## Log format
 

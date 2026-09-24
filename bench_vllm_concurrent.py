@@ -34,8 +34,9 @@ from collections import Counter, OrderedDict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bench_vllm as base                                        # noqa: E402
-from bench_vllm import (GpuSampler, build_parser, choose_model, fmt, list_models,   # noqa: E402
-                        load_jobs, load_prompt_dir, make_gpu_sampler, resolve_dirs, run_once, short_text)
+from bench_vllm import (GpuSampler, build_parser, choose_model, empty_response_note, fmt,   # noqa: E402
+                        list_models, load_jobs, load_prompt_dir, make_gpu_sampler, resolve_dirs,
+                        run_once, short_text)
 
 STAT_KEYS = ("mean", "p50", "p95", "p99", "min", "max")
 BUCKET_STEPS = (1, 2, 5, 10, 15, 30, 60, 120, 300, 600)
@@ -138,7 +139,8 @@ def run_batch(args, model, jobs, gpu):
             start = time.perf_counter() - t0
             try:
                 m, resp, reas = run_once(args.url, args.api_key, model, prompt, args.system,
-                                         args.max_tokens, args.temperature, None, args.thinking)
+                                         args.max_tokens, args.temperature, None, args.thinking,
+                                         args.reasoning_effort)
                 m["start_s"] = start
                 m["end_s"] = time.perf_counter() - t0
                 ct = m["completion_tokens"]
@@ -196,6 +198,7 @@ def summarize(args, model, jobs, results, wall, started_at, ended_at, gpu_summar
         "completion_tok_per_s": safe_div(comp_tok, wall),         # aggregate generation throughput
         "total_tok_per_s": safe_div(prompt_tok + comp_tok, wall),
         "truncated": sum(1 for m in ok if m.get("finish_reason") == "length"),
+        "empty": sum(1 for r in results if r["ok"] and not r["response"].strip()),
         "ttft": stats([m["ttft_s"] for m in ok]),
         "latency": stats([m["total_time_s"] for m in ok]),
         "itl": stats([m["itl_s"] for m in ok]),                   # inter-token latency
@@ -289,7 +292,7 @@ def average_summaries(sums):
     avg = dict(sums[0])
     scalar = ["wall_s", "requests_per_s", "avg_in_flight", "prompt_tokens_total", "completion_tokens_total",
               "total_tokens", "prompt_tokens_avg", "completion_tokens_avg", "completion_tok_per_s",
-              "total_tok_per_s", "requests", "ok", "failed", "error_rate", "truncated"]
+              "total_tok_per_s", "requests", "ok", "failed", "error_rate", "truncated", "empty"]
     for k in scalar:
         vals = [s[k] for s in sums if s[k] is not None]
         avg[k] = sum(vals) / len(vals) if vals else None
@@ -342,6 +345,7 @@ def summary_lines(s, gpu_interval):
     L.append(f"  completion tokens    : {fmt(s['completion_tokens_total'], 0)} total   ({fmt(s['completion_tokens_avg'], 0)} avg / request, "
              f"min {fmt(s['comp_tok']['min'], 0)} / p50 {fmt(s['comp_tok']['p50'], 0)} / max {fmt(s['comp_tok']['max'], 0)})")
     L.append(f"  hit max_tokens       : {fmt(s['truncated'], 0)} requests   (finish_reason = length)")
+    L.append(f"  empty responses      : {fmt(s['empty'], 0)} requests   (no answer text; e.g. all tokens spent on reasoning)")
     L.append("")
     L.append("[latency]  per request         mean / p50 / p95 / p99 / max")
     L.append(stat_line("time to first token", s["ttft"], 3, " s"))
@@ -416,8 +420,9 @@ def write_log(path, label, jobs, args, avg, batches, gpu_interval):
     if args.thinking:
         head += f"  |  thinking: {args.thinking}"
     L.append(head)
-    L.append(f"max_tokens: {args.max_tokens}  |  temperature: {args.temperature}  |  url: {args.url}  |  "
-             f"started: {batches[0][0]['started_at']}  |  ended: {batches[-1][0]['ended_at']}")
+    L.append(f"max_tokens: {args.max_tokens}  |  temperature: {args.temperature}"
+             + (f"  |  reasoning_effort: {args.reasoning_effort}" if args.reasoning_effort else "")
+             + f"  |  url: {args.url}  |  started: {batches[0][0]['started_at']}  |  ended: {batches[-1][0]['ended_at']}")
     L.append("=" * 72)
     L.append("")
     if len(batches) > 1:
@@ -456,7 +461,8 @@ def write_log(path, label, jobs, args, avg, batches, gpu_interval):
             L.append(f"[reasoning]  {tag}")
             L.append(r["reasoning"].rstrip())
             L.append("")
-        L.append(f"[response]  {tag}")
+        note = empty_response_note(r["m"], r["response"], r["reasoning"])
+        L.append(f"[response]  {tag}" + (f"  {note}" if note else ""))
         L.append(r["response"].rstrip())
         L.append("")
     L.append("")
@@ -552,7 +558,8 @@ def main():
                 if first["reasoning"] and args.show_reasoning:
                     print(f"\n--- reasoning (request {first['idx'] + 1}) ---")
                     print(first["reasoning"])
-                print(f"\n--- response (request {first['idx'] + 1}) ---")
+                note = empty_response_note(first["m"], first["response"], first["reasoning"])
+                print(f"\n--- response (request {first['idx'] + 1}) ---" + (f"  {note}" if note else ""))
                 print(first["response"])
 
         log_path = args.log or os.path.join(log_dir, f"{label}_concurrent.txt")
