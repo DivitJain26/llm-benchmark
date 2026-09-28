@@ -1,0 +1,95 @@
+========================================================================
+2026-09-22 10:25:12  |  model: Qwen/Qwen3-32B-AWQ  |  prompt: krisala-lead-suggestion  |  concurrency: 25  |  requests: 25  |  runs: 1  |  thinking: off
+max_tokens: 5000  |  temperature: 0.0
+========================================================================
+
+[load]
+  concurrency          : 25
+  requests             : 25  (ok 25, failed 0)
+  wall time            : 84.536 s
+  requests/s           : 0.30
+
+[throughput]  aggregate over the whole batch (this is the number that scales with load)
+  completion tok/s     : 156.5
+  total tok/s          : 6274.3   (prompt + completion)
+  prompt tokens        : 517175 total   (20687 avg / request)
+  completion tokens    : 13230 total   (529 avg / request)
+
+[latency]  per request         mean / p50 / p95 / max
+  time to first token  : 1.678 / 1.291 / 2.259 / 2.263 s
+  total time           : 83.053 / 83.295 / 84.502 / 84.503 s
+  generation tok/s     : 6.5 / 6.5 / 6.6 / 6.6   (per request, drops as concurrency rises)
+
+[gpu]  sampled every 0.25s across the whole batch with nvidia-smi
+  gpu 0: util avg 99%  max 100%  |  mem peak 43943/46068 MiB  |  305 samples
+
+[per request]   #   start_s   ttft_s   total_s   prompt_tok   comp_tok   gen_tok_s   prompt
+    1     0.001    0.561    84.307        20687        544         6.5   krisala-lead-suggestion
+    2     0.002    1.034    84.389        20687        544         6.5   krisala-lead-suggestion
+    3     0.005    1.031    84.387        20687        544         6.5   krisala-lead-suggestion
+    4     0.008    1.028    84.382        20687        544         6.5   krisala-lead-suggestion
+    5     0.010    1.291    81.651        20687        516         6.4   krisala-lead-suggestion
+    6     0.011    1.025    84.380        20687        544         6.5   krisala-lead-suggestion
+    7     0.013    1.287    81.652        20687        516         6.4   krisala-lead-suggestion
+    8     0.015    1.285    81.648        20687        516         6.4   krisala-lead-suggestion
+    9     0.016    1.285    81.645        20687        516         6.4   krisala-lead-suggestion
+   10     0.019    1.281    81.645        20687        516         6.4   krisala-lead-suggestion
+   11     0.020    1.282    81.639        20687        516         6.4   krisala-lead-suggestion
+   12     0.022    1.280    81.643        20687        516         6.4   krisala-lead-suggestion
+   13     0.024    1.276    81.642        20687        516         6.4   krisala-lead-suggestion
+   14     0.027    2.260    84.503        20687        544         6.6   krisala-lead-suggestion
+   15     0.029    2.263    84.502        20687        544         6.6   krisala-lead-suggestion
+   16     0.031    2.258    84.500        20687        544         6.6   krisala-lead-suggestion
+   17     0.033    2.252    84.496        20687        544         6.6   krisala-lead-suggestion
+   18     0.036    2.255    83.304        20687        529         6.5   krisala-lead-suggestion
+   19     0.037    2.247    83.302        20687        529         6.5   krisala-lead-suggestion
+   20     0.039    2.245    83.299        20687        529         6.5   krisala-lead-suggestion
+   21     0.041    2.245    81.767        20687        516         6.5   krisala-lead-suggestion
+   22     0.043    2.241    83.295        20687        529         6.5   krisala-lead-suggestion
+   23     0.045    2.245    83.294        20687        529         6.5   krisala-lead-suggestion
+   24     0.047    2.243    83.289        20687        529         6.5   krisala-lead-suggestion
+   25     0.051    2.239    81.756        20687        516         6.5   krisala-lead-suggestion
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7523 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]  request 1 of 25 (others omitted; use --all-responses)
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on 2 BHK interest",
+      "reasoning": "Amar Kumar has shown interest in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent attempts to contact him have been missed, and the last note indicates he is from Mumbai and prefers to connect when available. A follow-up call is needed to re-engage him and discuss the opportunity.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to follow up on his interest in the 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Discuss availability and schedule a visit or virtual meeting.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about the project and unit type, but the 'whatsapp_number' field is missing. This information is needed to facilitate communication and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "whatsapp_number: [Add WhatsApp number]",
+        "updates": [
+          {
+            "name": "whatsapp_number",
+            "label": "WhatsApp Number",
+            "value": "[Add WhatsApp number]"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on 2 BHK Investment Opportunity",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on our previous conversation regarding the 2 BHK investment opportunity in the EVITA KRISALA TOWNSHIP COMMON project. We have more details and would be happy to discuss this further at your convenience.\n\nPlease let us know a suitable time for a call or meeting.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent calls were missed, and the last note indicates he is from Mumbai and prefers to connect when available. The lead has a 'qualified' status and requires follow-up to re-engage him."
+}

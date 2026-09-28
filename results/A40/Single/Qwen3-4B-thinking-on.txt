@@ -1,0 +1,87 @@
+========================================================================
+2026-09-21 06:16:56  |  model: Qwen/Qwen3-4B  |  prompt: krisala_lead_suggestion  |  runs: 1  |  thinking: on
+========================================================================
+
+[metrics]
+  time to first token  : 0.195 s
+  total time           : 31.685 s
+  prompt tokens        : 21638
+  completion tokens    : 1362
+  total tokens         : 23000
+  generation tok/s     : 43.3
+  overall tok/s        : 43.0
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 97%  max 100%  |  mem peak 43899/46068 MiB  |  111 samples
+
+[prompt]  file: prompts/krisala_lead_suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+<think>
+Okay, let's tackle this. The user provided a complex scenario where I need to generate suggestions for a lead in a real estate company using the Metroleads platform. The main goal is to produce a JSON output with specific suggestions based on the given data.
+
+First, I need to parse all the inputs carefully. The lead is named Amar Kumar, assigned to user fc6aea77-be52-4a17-944a-1dd0aec43a7d. The lead's state is "qualified", and there are several events and notes. The key points from the events are multiple outbound calls that were missed, with the latest being on 2026-08-26. There's also a note from July 26th mentioning the lead is from Mumbai, an investor, interested in 2 BHK, and plans to connect via WhatsApp once free.
+
+Looking at the COMPANY CONTEXT, the lead_states include "qualified", and the lead_state_transition shows that from "qualified", the next states can be "hot", "warm", "unqualified", "site_visit_scheduled", or "lost". But since the lead is already "qualified", the next step might be to move them to "hot" if they show strong interest. However, the current state is "qualified", and the lead has a budget of 91 to 1.05 CR for a 2 BHK, which is a specific range.
+
+The lead_fields include project_4b930261 as "EVITA KRISALA TOWNSHIP COMMON", interested in 2 BHK and 3 BHK, and buying purpose is "Investment". The last note from July 26th indicates the lead is looking for a 2 BHK for investment and mentioned a video call (VC) but couldn't make it. The user is supposed to contact them again.
+
+Now, considering the CHANNEL SELECTION rules: since there are multiple missed calls, but not 4+ unanswered, we can still consider a call. However, the latest note says the lead will connect via WhatsApp once free. The user's availability is on 2026-09-08 and 09-09. The next best action should be a WhatsApp message to follow up on the previous note.
+
+The state_recommendation: since the lead is "qualified", and the next states include "hot", which is appropriate if they are showing strong interest. However, the lead hasn't had a site visit yet. The lead_state_dependency for "hot" might require certain fields, but since the lead is already qualified, moving to "hot" makes sense if they are showing interest.
+
+But the main action here is to follow up via WhatsApp because the lead mentioned they will connect once free. The existing_reminders are empty, so no need to reschedule. The info_gap check: the lead's fields are filled, so no info gaps.
+
+So the main suggestion is a WhatsApp message to follow up on the previous note, which mentions the lead's interest and the need to connect. The state_recommendation might be to move to "hot" if the lead is showing strong interest, but since the note says they are looking for a 2 BHK and the budget is set, moving to "hot" is appropriate.
+
+Wait, but the lead is already "qualified". The state transition from "qualified" allows moving to "hot", "warm", etc. The AI assistant's state descriptions say "Qualified" is when the lead meets basic criteria. So moving to "hot" would be a next step if they are showing strong intent.
+
+But the main action is the outreach via WhatsApp. The user's availability is on 2026-09-08, so the call should be scheduled then. However, the note says the lead will connect via WhatsApp once free, so maybe a WhatsApp is better.
+
+So the next best action is a WhatsApp message to follow up on the note, and the state recommendation is to move to "hot" if the lead is showing strong interest. But the lead hasn't had a site visit yet. The state "site_visit_scheduled" is a possible next state, but the lead hasn't been scheduled for one. However, the lead is qualified, so moving to "hot" is more appropriate.
+
+Wait, the lead's state is "qualified", and the state transition from "qualified" includes "hot", "warm", "unqualified", etc. So moving to "hot" is a valid next state.
+
+Therefore, the suggestions should be:
+
+1. Next Best Action: WhatsApp message to follow up on the note about the 2 BHK investment and schedule a call.
+
+2. State Recommendation: Move to "hot" as the lead is showing interest.
+
+But the user's availability is on 2026-09-08, so the WhatsApp should be sent then.
+
+Also, check if there are any info gaps. The lead's fields are filled, so no info gaps.
+
+So the final JSON should include a Next Best Action for WhatsApp and a State Recommendation to "hot".
+</think>
+
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Follow up on 2 BHK investment interest",
+      "reasoning": "Lead mentioned interest in 2 BHK for investment (July 26 note) and will connect via WhatsApp once free. Recent missed calls (August 23, 26) indicate need for proactive outreach.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Follow up on 2 BHK investment interest. Ask about availability for video call (VC) and schedule next steps.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "2026-09-08T12:00:00+05:30"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Move to Hot",
+      "reasoning": "Lead is qualified (state: qualified) and shows strong interest in 2 BHK investment. Recent note indicates intent to connect, aligning with 'Hot' state description.",
+      "action": {
+        "action_type": "state_change",
+        "details": "hot"
+      },
+      "confidence": "high"
+    }
+  ]
+}

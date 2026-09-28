@@ -1,0 +1,181 @@
+========================================================================
+2026-09-22 10:36:42  |  model: Qwen/Qwen3-32B-AWQ  |  prompt: krisala-lead-suggestion  |  concurrency: 100  |  requests: 100  |  runs: 1  |  thinking: off
+max_tokens: 5000  |  temperature: 0.3
+========================================================================
+
+[load]
+  concurrency          : 100
+  requests             : 100  (ok 100, failed 0)
+  wall time            : 286.164 s
+  requests/s           : 0.35
+
+[throughput]  aggregate over the whole batch (this is the number that scales with load)
+  completion tok/s     : 197.3
+  total tok/s          : 7426.4   (prompt + completion)
+  prompt tokens        : 2068700 total   (20687 avg / request)
+  completion tokens    : 56463 total   (565 avg / request)
+
+[latency]  per request         mean / p50 / p95 / max
+  time to first token  : 6.051 / 6.062 / 9.793 / 9.800 s
+  total time           : 253.669 / 269.251 / 284.204 / 286.043 s
+  generation tok/s     : 2.3 / 2.3 / 2.5 / 2.6   (per request, drops as concurrency rises)
+
+[gpu]  sampled every 0.25s across the whole batch with nvidia-smi
+  gpu 0: util avg 100%  max 100%  |  mem peak 43945/46068 MiB  |  1035 samples
+
+[per request]   #   start_s   ttft_s   total_s   prompt_tok   comp_tok   gen_tok_s   prompt
+    1     0.000    1.026   284.200        20687        688         2.4   krisala-lead-suggestion
+    2     0.001    0.566   253.520        20687        548         2.2   krisala-lead-suggestion
+    3     0.005    1.022   185.539        20687        376         2.0   krisala-lead-suggestion
+    4     0.007    1.020   272.649        20687        613         2.3   krisala-lead-suggestion
+    5     0.009    1.602   197.938        20687        402         2.0   krisala-lead-suggestion
+    6     0.011    1.599   257.628        20687        558         2.2   krisala-lead-suggestion
+    7     0.013    1.597   280.935        20687        657         2.4   krisala-lead-suggestion
+    8     0.014    1.595   279.322        20687        647         2.3   krisala-lead-suggestion
+    9     0.016    1.594   196.178        20687        398         2.0   krisala-lead-suggestion
+   10     0.018    1.591   268.954        20687        597         2.2   krisala-lead-suggestion
+   11     0.019    1.590   281.089        20687        658         2.4   krisala-lead-suggestion
+   12     0.023    1.587   273.906        20687        618         2.3   krisala-lead-suggestion
+   13     0.023    2.314   274.112        20687        618         2.3   krisala-lead-suggestion
+   14     0.028    2.311   265.246        20687        583         2.2   krisala-lead-suggestion
+   15     0.030    2.308   186.963        20687        377         2.0   krisala-lead-suggestion
+   16     0.031    2.306   278.643        20687        642         2.3   krisala-lead-suggestion
+   17     0.033    2.307   214.012        20687        440         2.1   krisala-lead-suggestion
+   18     0.034    2.304   196.161        20687        397         2.0   krisala-lead-suggestion
+   19     0.036    2.303   281.227        20687        658         2.4   krisala-lead-suggestion
+   20     0.037    2.300   276.510        20687        630         2.3   krisala-lead-suggestion
+   21     0.039    2.300   280.748        20687        655         2.4   krisala-lead-suggestion
+   22     0.040    2.298   282.657        20687        670         2.4   krisala-lead-suggestion
+   23     0.042    2.296   283.828        20687        682         2.4   krisala-lead-suggestion
+   24     0.044    2.295   217.571        20687        449         2.1   krisala-lead-suggestion
+   25     0.046    3.775   236.577        20687        497         2.1   krisala-lead-suggestion
+   26     0.048    2.289   221.903        20687        460         2.1   krisala-lead-suggestion
+   27     0.048    3.774   202.683        20687        411         2.1   krisala-lead-suggestion
+   28     0.051    3.771   268.378        20687        593         2.2   krisala-lead-suggestion
+   29     0.053    3.770   274.285        20687        618         2.3   krisala-lead-suggestion
+   30     0.055    3.768   205.526        20687        418         2.1   krisala-lead-suggestion
+   31     0.056    3.771   183.091        20687        368         2.1   krisala-lead-suggestion
+   32     0.058    3.766   191.693        20687        386         2.1   krisala-lead-suggestion
+   33     0.060    3.766   245.946        20687        523         2.2   krisala-lead-suggestion
+   34     0.062    3.757   244.866        20687        520         2.2   krisala-lead-suggestion
+   35     0.063    3.757   215.969        20687        444         2.1   krisala-lead-suggestion
+   36     0.064    3.763   274.477        20687        619         2.3   krisala-lead-suggestion
+   37     0.067    3.753   193.478        20687        390         2.1   krisala-lead-suggestion
+   38     0.068    3.754   269.161        20687        596         2.2   krisala-lead-suggestion
+   39     0.069    3.755   191.682        20687        386         2.1   krisala-lead-suggestion
+   40     0.071    3.750   200.062        20687        405         2.1   krisala-lead-suggestion
+   41     0.072    3.753   214.362        20687        440         2.1   krisala-lead-suggestion
+   42     0.074    6.079   223.442        20687        462         2.1   krisala-lead-suggestion
+   43     0.075    6.073   285.704        20687        712         2.5   krisala-lead-suggestion
+   44     0.076    6.071   283.903        20687        681         2.5   krisala-lead-suggestion
+   45     0.078    6.073   195.674        20687        394         2.1   krisala-lead-suggestion
+   46     0.079    6.073   192.137        20687        386         2.1   krisala-lead-suggestion
+   47     0.081    6.068   265.777        20687        583         2.2   krisala-lead-suggestion
+   48     0.082    6.068   282.506        20687        667         2.4   krisala-lead-suggestion
+   49     0.084    6.069   270.640        20687        601         2.3   krisala-lead-suggestion
+   50     0.085    6.069   200.045        20687        404         2.1   krisala-lead-suggestion
+   51     0.087    6.061   260.806        20687        566         2.2   krisala-lead-suggestion
+   52     0.088    6.065   279.246        20687        644         2.4   krisala-lead-suggestion
+   53     0.089    6.063   273.422        20687        613         2.3   krisala-lead-suggestion
+   54     0.090    6.064   283.968        20687        682         2.5   krisala-lead-suggestion
+   55     0.092    6.059   262.853        20687        573         2.2   krisala-lead-suggestion
+   56     0.094    6.055   270.874        20687        602         2.3   krisala-lead-suggestion
+   57     0.095    6.053   265.760        20687        583         2.2   krisala-lead-suggestion
+   58     0.097    6.053   228.522        20687        475         2.1   krisala-lead-suggestion
+   59     0.100    6.052   277.223        20687        632         2.3   krisala-lead-suggestion
+   60     0.101    6.049   260.497        20687        565         2.2   krisala-lead-suggestion
+   61     0.103    6.056   253.060        20687        542         2.2   krisala-lead-suggestion
+   62     0.104    6.051   284.277        20687        687         2.5   krisala-lead-suggestion
+   63     0.106    9.794   256.910        20687        552         2.2   krisala-lead-suggestion
+   64     0.107    9.800   281.275        20687        656         2.4   krisala-lead-suggestion
+   65     0.107    9.793   265.167        20687        580         2.3   krisala-lead-suggestion
+   66     0.109    9.794   286.043        20687        718         2.6   krisala-lead-suggestion
+   67     0.111    9.797   280.840        20687        653         2.4   krisala-lead-suggestion
+   68     0.112    9.797   283.945        20687        681         2.5   krisala-lead-suggestion
+   69     0.114    9.791   285.981        20687        717         2.6   krisala-lead-suggestion
+   70     0.115    9.792   255.188        20687        547         2.2   krisala-lead-suggestion
+   71     0.117    9.793   281.744        20687        660         2.4   krisala-lead-suggestion
+   72     0.118    9.786   256.605        20687        551         2.2   krisala-lead-suggestion
+   73     0.120    9.786   283.252        20687        674         2.5   krisala-lead-suggestion
+   74     0.121    9.784   275.834        20687        624         2.3   krisala-lead-suggestion
+   75     0.122    9.788   272.533        20687        608         2.3   krisala-lead-suggestion
+   76     0.123    9.779   188.790        20687        378         2.1   krisala-lead-suggestion
+   77     0.126    9.783   280.501        20687        651         2.4   krisala-lead-suggestion
+   78     0.127    9.780   255.532        20687        548         2.2   krisala-lead-suggestion
+   79     0.128    9.770   279.531        20687        645         2.4   krisala-lead-suggestion
+   80     0.130    9.776   269.865        20687        597         2.3   krisala-lead-suggestion
+   81     0.131    9.772   275.020        20687        620         2.3   krisala-lead-suggestion
+   82     0.133    9.775   203.428        20687        411         2.1   krisala-lead-suggestion
+   83     0.136    9.765   282.314        20687        665         2.4   krisala-lead-suggestion
+   84     0.137    9.766   275.816        20687        624         2.3   krisala-lead-suggestion
+   85     0.140    9.761   275.213        20687        621         2.3   krisala-lead-suggestion
+   86     0.142    9.763   209.876        20687        427         2.1   krisala-lead-suggestion
+   87     0.143    9.756   266.858        20687        586         2.3   krisala-lead-suggestion
+   88     0.145    9.761   280.963        20687        654         2.4   krisala-lead-suggestion
+   89     0.146    9.758   269.340        20687        595         2.3   krisala-lead-suggestion
+   90     0.148    9.756   233.550        20687        487         2.2   krisala-lead-suggestion
+   91     0.150    9.753   269.591        20687        596         2.3   krisala-lead-suggestion
+   92     0.152    9.751   281.947        20687        662         2.4   krisala-lead-suggestion
+   93     0.153    9.748   244.056        20687        516         2.2   krisala-lead-suggestion
+   94     0.153    9.749   283.407        20687        676         2.5   krisala-lead-suggestion
+   95     0.155    9.750   188.756        20687        378         2.1   krisala-lead-suggestion
+   96     0.157    9.746   261.616        20687        568         2.3   krisala-lead-suggestion
+   97     0.158    9.745   282.175        20687        664         2.4   krisala-lead-suggestion
+   98     0.160    9.749   270.324        20687        599         2.3   krisala-lead-suggestion
+   99     0.162    9.741   285.289        20687        705         2.6   krisala-lead-suggestion
+  100     0.162    9.746   283.816        20687        680         2.5   krisala-lead-suggestion
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7523 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]  request 1 of 100 (others omitted; use --all-responses)
+```json
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Follow up with Amar Kumar via WhatsApp",
+      "reasoning": "Amar Kumar has been contacted multiple times via outbound calls in the past month, but all calls were missed or disconnected. The most recent note indicates he is an investor interested in a 2 BHK for HKT and mentioned connecting once he is free. Given the repeated missed calls, it is appropriate to switch to WhatsApp to avoid further call failures and to provide a more convenient method of contact.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Follow up with Amar Kumar regarding his interest in a 2 BHK for HKT. Ask if he is available for a virtual meeting or site visit.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about their interest in a 2 BHK for HKT and their budget. However, the 'Project' field is filled with 'EVITA KRISALA TOWNSHIP COMMON', but the specific unit type and budget range are not captured in the relevant fields. Updating these fields will help in better tracking and qualification.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 2 BHK, Budget: 91 to 1.05 CR",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "2 BHK"
+          },
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "91 to 1.05 CR"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on Your Property Inquiry",
+    "body": "Dear Amar Kumar,\n\nI hope you are doing well. I wanted to follow up on our previous conversation regarding your interest in a 2 BHK property for HKT. We understand you mentioned that you are currently busy and will connect once you are free.\n\nWe are here to assist you whenever you are ready. If you have any questions or need further details, please feel free to reach out to us.\n\nLooking forward to hearing from you soon.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is an investor interested in a 2 BHK property for HKT. He has been contacted multiple times via outbound calls, but all calls were missed or disconnected. The most recent note indicates he is currently busy and will connect once he is free. The lead is in the 'Qualified' state and has provided a budget range of 91 to 1.05 CR. No reminders are currently pending."
+}
+```

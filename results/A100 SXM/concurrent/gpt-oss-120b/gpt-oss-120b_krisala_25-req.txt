@@ -1,0 +1,1529 @@
+========================================================================
+2026-09-23 10:05:05  |  model: openai/gpt-oss-120b  |  prompt: mixed  |  concurrency: 25  |  requests: 25  |  runs: 1  |  thinking: off
+max_tokens: 5000  |  temperature: 0.3
+========================================================================
+
+[load]
+  concurrency          : 25
+  requests             : 25  (ok 25, failed 0)
+  wall time            : 124.579 s
+  requests/s           : 0.20
+
+[throughput]  aggregate over the whole batch (this is the number that scales with load)
+  completion tok/s     : 550.2
+  total tok/s          : 4215.1   (prompt + completion)
+  prompt tokens        : 456576 total   (18263 avg / request)
+  completion tokens    : 68540 total   (2742 avg / request)
+
+[latency]  per request         mean / p50 / p95 / max
+  time to first token  : 85.311 / 81.780 / 110.853 / 117.401 s
+  total time           : 109.911 / 109.783 / 121.235 / 124.535 s
+  generation tok/s     : 138.5 / 94.4 / 328.5 / 532.1   (per request, drops as concurrency rises)
+
+[gpu]  sampled every 0.25s across the whole batch with nvidia-smi
+  gpu 0: util avg 99%  max 100%  |  mem peak 76831/81920 MiB  |  435 samples
+
+[per request]   #   start_s   ttft_s   total_s   prompt_tok   comp_tok   gen_tok_s   prompt
+    1     0.001   89.084   114.368        17484       2850       112.7   krisala-lead-suggestion-1
+    2     0.004   74.104   105.004        21803       2499        80.9   krisala-lead-suggestion-2
+    3     0.007   88.293   115.436        16955       2915       107.4   krisala-lead-suggestion-3
+    4     0.010   89.202   113.676        16940       2812       114.9   krisala-lead-suggestion-4
+    5     0.013   89.757   112.416        17484       2748       121.3   krisala-lead-suggestion-1
+    6     0.016   68.717    98.300        21803       2342        79.2   krisala-lead-suggestion-2
+    7     0.019   82.885   111.540        16955       2705        94.4   krisala-lead-suggestion-3
+    8     0.021   75.784   104.529        16940       2487        86.5   krisala-lead-suggestion-4
+    9     0.024   81.282   109.783        17484       2629        92.2   krisala-lead-suggestion-1
+   10     0.027   87.926   114.342        21803       2848       107.8   krisala-lead-suggestion-2
+   11     0.029   108.144   119.883        16955       3274       278.9   krisala-lead-suggestion-3
+   12     0.032   80.199   110.173        16940       2645        88.2   krisala-lead-suggestion-4
+   13     0.033   111.289   121.378        17484       3413       338.3   krisala-lead-suggestion-1
+   14     0.034   80.369   108.401        21803       2580        92.0   krisala-lead-suggestion-2
+   15     0.040   117.401   124.535        16955       3796       532.1   krisala-lead-suggestion-3
+   16     0.042   73.405   104.038        16940       2475        80.8   krisala-lead-suggestion-4
+   17     0.044   81.780   108.630        17484       2585        96.3   krisala-lead-suggestion-1
+   18     0.047   91.759   115.344        21803       2909       123.3   krisala-lead-suggestion-2
+   19     0.049   70.318   100.382        16955       2390        79.5   krisala-lead-suggestion-3
+   20     0.052   80.135   108.580        16940       2584        90.8   krisala-lead-suggestion-4
+   21     0.054   87.681   109.543        17484       2619       119.8   krisala-lead-suggestion-1
+   22     0.056   80.000   109.699        21803       2625        88.4   krisala-lead-suggestion-2
+   23     0.059   79.054   108.375        16955       2578        87.9   krisala-lead-suggestion-3
+   24     0.061   55.095    78.758        16940       1889        79.8   krisala-lead-suggestion-4
+   25     0.064   109.110   120.664        17484       3343       289.3   krisala-lead-suggestion-1
+
+[prompt]  file: prompts/krisala-lead-suggestion-1.txt  (7025 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[prompt]  file: prompts/krisala-lead-suggestion-2.txt  (8061 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[prompt]  file: prompts/krisala-lead-suggestion-3.txt  (6888 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[prompt]  file: prompts/krisala-lead-suggestion-4.txt  (6876 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]  request 1 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp follow‑up on investment interest",
+      "reasoning": "Six outbound calls since 2026‑08‑07 were missed and the note on 2026‑07‑26 shows Amar is interested in a 2 BHK investment and asked to be contacted via WhatsApp.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Message Amar Kumar via WhatsApp to follow up on his investment interest for 2 BHK in EVITA KRISALA TOWNSHIP COMMON, confirm a convenient time for a call or site visit.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Update lead to Warm",
+      "reasoning": "Lead is qualified, shows interest but not yet hot; required fields for Warm (Project and Source Tags) are already filled.",
+      "action": {
+        "action_type": "state_change",
+        "details": "warm",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Add City information",
+      "reasoning": "Note on 2026‑07‑26 states \"he is from Mumbai\", but the City field is empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "City: Mumbai",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Mumbai"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your 2 BHK investment interest",
+    "body": "Hi Amar,\n\nI hope you’re doing well. I’m reaching out regarding your interest in a 2 BHK (and 3 BHK) investment in EVITA KRISALA TOWNSHIP COMMON. Your budget of 91‑1.05 CR and preferred carpet area of 900‑1000 sqft have been noted.\n\nCould you let me know a convenient time for a quick call or a site visit? If you prefer, we can continue the conversation over WhatsApp.\n\nLooking forward to your response.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in 2 BHK and 3 BHK units for investment in EVITA KRISALA TOWNSHIP COMMON, budget 91‑1.05 CR, carpet area 900‑1000 sqft. He was contacted multiple times; the last outbound call on 2026‑08‑26 was missed. A note on 2026‑07‑26 indicates he is from Mumbai, an investor, and will connect once free. No inbound response or scheduled site visit exists. No pending reminders are open. Lead is currently in the Qualified state."
+}
+
+[response]  request 2 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Send SMS acknowledging interest",
+      "reasoning": "Note on 2026-09-23 shows Tushar is now interested in the Land of Dreams project, looking for a 3 BHK and is from Agra.",
+      "action": {
+        "action_type": "sms",
+        "details": "Send a brief SMS acknowledging interest in Land of Dreams, confirm 3 BHK requirement and ask for a convenient time to schedule a site visit.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Move to Qualified",
+      "reasoning": "Lead now shows clear interest (Land of Dreams, 3 BHK) and required fields (Project, Platform, Source Tags) are filled, allowing transition from Unqualified to Qualified.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Immediate",
+      "title": "Capture missing location and unit type",
+      "reasoning": "Note mentions Tushar is from Agra and wants a 3 BHK, but the Area and Unit Type fields are empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Area: Agra, Unit Type: 3 BHK",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Agra"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in Land of Dreams – next steps",
+    "body": "Hi Tushar,\n\nThank you for expressing interest in the Land of Dreams project. I understand you are looking for a 3 BHK unit and are based in Agra.\n\nWe would be happy to arrange a site visit at a time convenient for you. Please let me know your preferred date and time, and I will confirm the appointment.\n\nLooking forward to assisting you further.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Tushar Mapari is now interested in the Land of Dreams project, seeking a 3 BHK and is from Agra. The latest note on 2026-09-23 records this new interest. Previously the lead was marked Unqualified with a reason of no response after 10 attempts. No pending reminders exist for this lead. The lead has a phone number (+919637437564) but no email address on file. Assigned to sales user 51238b50-a3e2-4630-b61c-27b1da15ebd3."
+}
+
+[response]  request 3 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to confirm interest",
+      "reasoning": "Note on 2026-09-23 indicates Sourabh is now interested in LAND OF DREAMS 5BHK for investment with a budget around 70 Lakh.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Sourabh to confirm interest in LAND OF DREAMS 5BHK, discuss investment purpose, budget 70 Lakh, and schedule a site visit.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Mark as Qualified",
+      "reasoning": "Recent note shows clear interest and required fields for Qualified are mostly present; the lead can move from Unqualified to Qualified.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing details",
+      "reasoning": "Note provides values for Unit Type, Budget, Buying Purpose, and Area that are currently empty in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 5 BHK, Budget: 70 Lakh, Buying Purpose: Investment, Area: Pune",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "5 BHK"
+          },
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "70 Lakh"
+          },
+          {
+            "name": "buying_purpose_19a51b85",
+            "label": "Buying Purpose",
+            "value": "Investment"
+          },
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Pune"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in LAND OF DREAMS – next steps",
+    "body": "Hi Sourabh,\n\nThank you for sharing your interest in the LAND OF DREAMS project. I understand you are looking for a 5 BHK for investment with a budget of around 70 Lakh.\n\nWe would be happy to arrange a site visit at your convenience and discuss the available options that match your requirements. Please let me know a suitable time for you, or feel free to suggest any other details you’d like us to cover.\n\nLooking forward to your response.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sourabh Pharande is interested in the LAND OF DREAMS project, looking for a 5 BHK for investment with a budget around 70 Lakh. The lead was created on 12 July 2026 via a Facebook form and is currently in the Unqualified state. Recent outbound calls on 13 July and 7 August were answered; the latest note on 23 Sept 2026 captured the renewed interest. No pending reminders exist for this lead. Missing key details include Unit Type, Budget, Buying Purpose, Area, and Pre Sales Member."
+}
+
+[response]  request 4 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss 41 City Hub interest",
+      "reasoning": "A note on 2026-09-23 shows Sangram is now interested in the 41 City Hub project, 3 BHK in Pune, Maharashtra, and previous outbound calls were missed.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss 41 City Hub 3 BHK interest and capture location, unit type, and state details.",
+        "template_name": "",
+        "scheduled_time": "2026-09-23T14:08:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead details",
+      "reasoning": "The latest note provides values for Project, Area, Unit Type and State that are not recorded in the lead fields.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Project: 41 City Hub, Area: Pune, Unit Type: 3 BHK, States: Maharashtra",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "project_4b930261",
+            "label": "Project",
+            "value": "41 City Hub"
+          },
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Pune"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          },
+          {
+            "name": "state_9d4",
+            "label": "States",
+            "value": "Maharashtra"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in 41 City Hub – 3 BHK in Pune",
+    "body": "Hi Sangram,\n\nThank you for sharing your interest in the 41 City Hub project. I understand you are looking for a 3 BHK unit in Pune, Maharashtra.\n\nCould we schedule a quick call at your convenience to discuss the available options, pricing, and any other preferences you may have? Please let me know a suitable time, or feel free to reply with any questions.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sangram Chaure is now interested in the 41 City Hub project, looking for a 3 BHK in Pune, Maharashtra. The lead was originally captured on 2026-07-14 with interest in LAND OF DREAMS via a Facebook form. A note on 2026-09-23 recorded this new interest. Two outbound calls on 2026-08-07 and 2026-07-16 were missed. No pending reminders exist. The lead remains in the Unqualified state but may need re‑qualification."
+}
+
+[response]  request 5 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Next Day",
+      "title": "WhatsApp follow‑up to schedule video call",
+      "reasoning": "Six outbound calls to Amar Kumar were missed between 07‑Aug and 26‑Aug 2026, and the latest note (26‑Jul) shows he requested a WhatsApp callback and is interested in a 2 BHK investment.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Message Amar Kumar to propose a convenient time for a video conference and confirm his interest in the EVITA KRISALA TOWNSHIP COMMON 2 BHK investment.",
+        "template_name": "",
+        "scheduled_time": "2026-09-08T10:00:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Add City information",
+      "reasoning": "Note on 26‑Jul‑2026 states the lead is from Mumbai, but the City field is empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "City: Mumbai",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Mumbai"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your EVITA KRISALA TOWNSHIP COMMON interest",
+    "body": "Hi Amar,\n\nI hope you are well. I wanted to follow up on your interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON. Could you let me know a convenient time for a short video conference to discuss the project details and your budget?\n\nLooking forward to your reply.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON with a budget of 91‑1.05 CR and carpet area 900‑1000 sqft. The lead was created on 20 Mar 2026 and has had multiple outbound calls, the latest being a missed call on 26 Aug 2026. A note on 26 Jul 2026 indicates he is from Mumbai, an investor, and requested a WhatsApp callback for a video conference. The lead’s current state is Qualified. No pending reminders exist, but the lead has not responded to recent outreach attempts. The City field is currently empty."
+}
+
+[response]  request 6 of 25
+{
+  "suggestions": [
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Move to Qualified",
+      "reasoning": "Note on 2026-09-23 shows interest in Land of Dreams project, and required fields (Pre Sales Member, Project, Source Tags) are already filled, allowing transition from unqualified to qualified.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp lead about Land of Dreams interest",
+      "reasoning": "Recent note (2026-09-23) indicates Tushar is interested in the Land of Dreams 3 BHK in Agra; over 30 prior call attempts were missed, so a WhatsApp message is the appropriate channel.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Hi Tushar, I see you’re interested in the Land of Dreams 3 BHK in Agra. Would you like to schedule a site visit or discuss pricing?",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture Unit Type and Area",
+      "reasoning": "Note mentions 3 BHK unit type and that the lead is from Agra, but the fields \"Unit Type\" and \"Area\" are currently empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 3 BHK, Area: Agra",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          },
+          {
+            "name": "area__ac1e6456",
+            "label": "Area",
+            "value": "Agra"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in Land of Dreams – next steps",
+    "body": "Hi Tushar,\n\nI noticed you’re interested in a 3 BHK unit in the Land of Dreams project in Agra. I’d be happy to share more details and arrange a site visit at your convenience.\n\nPlease let me know a suitable time, or feel free to reply here.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Tushar Mapari is interested in the Land of Dreams project, specifically a 3 BHK unit in Agra. The latest note on 2026-09-23 recorded this interest. Numerous outbound calls have been missed since July. No pending reminders exist. The lead is currently in the Unqualified state but has expressed new interest."
+}
+
+[response]  request 7 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss LAND OF DREAMS interest",
+      "reasoning": "A note on 2026-09-23 recorded Sourabh's interest in LAND OF DREAMS (5 BHK, investment, ~70 Lakh) and the user is free today from 14:06‑18:00 IST; previous outbound calls were answered, so a call is appropriate.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss Sourabh's interest in LAND OF DREAMS 5 BHK for investment, confirm budget, and arrange a site visit.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing preference details",
+      "reasoning": "The recent note provides values for Unit Type, Area, Buying Purpose and Budget that are not yet recorded in the lead fields.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 5 BHK, Area: Pune, Buying Purpose: Investment, Budget: 66 to 70 Lakhs",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "5 BHK"
+          },
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Pune"
+          },
+          {
+            "name": "buying_purpose_19a51b85",
+            "label": "Buying Purpose",
+            "value": "Investment"
+          },
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "66 to 70 Lakhs"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in LAND OF DREAMS – 5 BHK Investment",
+    "body": "Hi Sourabh,\n\nThank you for sharing your interest in the LAND OF DREAMS project. I understand you are looking for a 5 BHK unit for investment with a budget of around 70 Lakhs and are based in Pune.\n\nI would be happy to provide more details, share floor plans, and arrange a site visit at your convenience. Please let me know a suitable time for you, or feel free to reply with any questions you may have.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sourabh Pharande is interested in the LAND OF DREAMS project, looking for a 5 BHK unit for investment. The lead mentioned a budget of around 70 Lakhs and is from Pune. A note on 23 Sep 2026 captured this interest; earlier outbound calls on 7 Aug and 13 Jul were answered. No pending reminders exist for this lead. Currently the lead is in the \"unqualified\" state due to an earlier location issue. Missing details include Unit Type, Area, Buying Purpose, and Budget, which need to be recorded."
+}
+
+[response]  request 8 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Email to confirm interest",
+      "reasoning": "A note at 2026-09-23T08:38:32Z shows Sangram is now interested in the 41 City Hub project (3BHK, Pune, Maharashtra) but the phone is marked as Invalid Number, so email is the safest channel.",
+      "action": {
+        "action_type": "email",
+        "details": "Send follow‑up email using the Follow Up Email template",
+        "template_name": "Follow Up Email",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture updated project details",
+      "reasoning": "The latest note provides concrete values for Project, Unit Type, City and State that are currently empty in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Project: 41 City Hub, Unit Type: 3 BHK, City: Pune, States: Maharashtra",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "project_4b930261",
+            "label": "Project",
+            "value": "41 City Hub"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Pune"
+          },
+          {
+            "name": "state_9d4",
+            "label": "States",
+            "value": "Maharashtra"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in 41 City Hub – next steps",
+    "body": "Hi Sangram,\n\nThank you for letting us know you are interested in the 41 City Hub project and are looking for a 3 BHK in Pune, Maharashtra.\n\nCould you please confirm the best phone number to reach you, or let us know a convenient time for a call? We can then share detailed plans, pricing, and schedule a site visit at your convenience.\n\nLooking forward to assisting you further.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sangram Chaure is now interested in the 41 City Hub project (3BHK) and is based in Pune, Maharashtra. The lead was created on 2026-07-14 via a Facebook form with source Digital. A note on 2026-09-23 recorded this new interest. Earlier outbound calls on 2026-07-16 and 2026-08-07 were missed, and the phone is marked as Invalid Number. The lead is currently in the Unqualified state. No pending reminders exist."
+}
+
+[response]  request 9 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp follow‑up on investment interest",
+      "reasoning": "Six outbound calls were missed (latest on 2026‑08‑26) and the lead previously asked to be contacted via WhatsApp (note on 2026‑07‑26).",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Reach out via WhatsApp to discuss Amar's interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON and propose a convenient time for a call or site visit.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Immediate",
+      "title": "Capture city information",
+      "reasoning": "Note on 2026‑07‑26 states the lead is from Mumbai, but the City field is empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "City: Mumbai",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Mumbai"
+          }
+        ]
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Move lead to Hot",
+      "reasoning": "Lead is qualified, has expressed clear investment interest and budget alignment (note 2026‑07‑26), satisfying the Hot state description and dependencies.",
+      "action": {
+        "action_type": "state_change",
+        "details": "hot",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your 2 BHK investment interest",
+    "body": "Hi Amar,\n\nI hope you’re doing well. I wanted to follow up on your interest in a 2 BHK (or 3 BHK) at EVITA KRISALA TOWNSHIP COMMON, with a budget of 91 Cr to 1.05 Cr. Let me know a convenient time for a quick call or a site visit, or feel free to reply here on WhatsApp.\n\nLooking forward to assisting you further.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in investing in a 2 BHK/3 BHK at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. He mentioned he is from Mumbai and prefers WhatsApp contact. Recent activity includes multiple missed outbound calls (latest on 2026‑08‑26) and notes of interest on 2026‑07‑26. No site visit has been scheduled yet. There are no pending reminders. The lead is currently in the Qualified state."
+}
+
+[response]  request 10 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Send SMS to discuss 3 BHK interest",
+      "reasoning": "Note on 2026-09-23 shows Tushar is now interested in the Land of Dreams 3 BHK and is from Agra; previous outbound calls have been missed more than four times, so a SMS is the appropriate channel.",
+      "action": {
+        "action_type": "sms",
+        "details": "Message: Hi Tushar, thank you for your interest in the Land of Dreams 3 BHK. Could you let us know a convenient time for a site visit or call? Regards, KRISALA BUILDTECH LLP",
+        "template_name": "",
+        "scheduled_time": "2026-09-23T14:30:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Move to Qualified state",
+      "reasoning": "Lead is currently Unqualified but the latest note indicates new interest; required fields for Qualified (Pre Sales Member, Project, Source Tags) are all present and transition from Unqualified to Qualified is allowed.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture Unit Type and Area",
+      "reasoning": "Note mentions interest in a 3 BHK unit and that the lead is from Agra, but the Unit Type and Area fields are empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 3 BHK, Area: Agra",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          },
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Agra"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Land of Dreams – 3 BHK Availability",
+    "body": "Hi Tushar,\n\nThank you for expressing interest in the Land of Dreams project. I understand you are looking for a 3 BHK unit and are based in Agra.\n\nCould you please let us know a convenient time for a site visit or a call to discuss the available options and pricing?\n\nLooking forward to assisting you.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Tushar Mapari is interested in the Land of Dreams project, looking for a 3 BHK unit. The latest note on 23 Sep 2026 indicates this interest and that he is from Agra. The lead has a long history of missed outbound calls and rejected call notes since July 2026. No pending reminders are currently open for this lead. The lead remains in the Unqualified state despite recent interest. Source tag is Digital and the pre‑sales member is Ankita Uike."
+}
+
+[response]  request 11 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss LAND OF DREAMS interest",
+      "reasoning": "A note on 2026-09-23 shows Sourabh is now interested in the LAND OF DREAMS project, seeking a 5 BHK for investment with a budget of ~70 Lakh; the agent is free today from 14:06‑18:00.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss his interest, confirm unit type, budget and purpose, and propose a site visit.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing interest details",
+      "reasoning": "The recent note provides values for Unit Type, Budget, Buying Purpose and City that are not yet recorded in the lead.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 5 BHK, Budget: 70 Lakh, Buying Purpose: Investment, City: Pune",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "5 BHK"
+          },
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "70 Lakh"
+          },
+          {
+            "name": "buying_purpose_19a51b85",
+            "label": "Buying Purpose",
+            "value": "Investment"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Pune"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in LAND OF DREAMS – next steps",
+    "body": "Hi Sourabh,\n\nThank you for sharing your interest in the LAND OF DREAMS project. I understand you are looking for a 5 BHK unit for investment with a budget of around 70 Lakh.\n\nWe would be happy to arrange a site visit at your convenience and discuss the available options that match your requirements.\n\nPlease let me know a suitable date and time for the visit, or feel free to reply with any questions you may have.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sourabh Pharande is interested in the LAND OF DREAMS project, seeking a 5 BHK unit for investment with a budget of around 70 Lakh. The lead was created on 12 July 2026 and includes email, phone, and Digital source tags with Social Media sub‑source and Instagram platform. Recent activity includes a note on 23 Sep 2026 confirming this interest and earlier answered outbound calls on 7 Aug 2026 and 13 Jul 2026. No pending reminders exist, but the fields Unit Type, Budget, Buying Purpose and City are still empty."
+}
+
+[response]  request 12 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss new project interest",
+      "reasoning": "Latest note (2026-09-23) shows Sangram is now interested in 41 City Hub, a 3 BHK in Pune, Maharashtra.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss 41 City Hub interest, confirm unit type, budget and schedule site visit.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Move to Qualified",
+      "reasoning": "The lead has expressed active interest, matching criteria for Qualified, and transition from Unqualified to Qualified is allowed.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing preference details",
+      "reasoning": "Note mentions 3 BHK unit type, Pune city and Maharashtra state, but these fields are empty on the lead.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 3 BHK, City: Pune, States: Maharashtra",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Pune"
+          },
+          {
+            "name": "state_9d4",
+            "label": "States",
+            "value": "Maharashtra"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in 41 City Hub – Next steps",
+    "body": "Hi Sangram,\n\nThank you for sharing your interest in the 41 City Hub project. I understand you are looking for a 3 BHK in Pune, Maharashtra.\n\nCould you please confirm your preferred budget and any specific requirements? Once I have these details, I can arrange a site visit at a convenient time for you.\n\nLooking forward to your response.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sangram Chaure is interested in the 41 City Hub project, looking for a 3 BHK in Pune, Maharashtra. Lead was created on 2026-07-14 via a Facebook form and is currently in the Unqualified state. Outbound calls on 2026-08-07 and 2026-07-16 were missed by the lead. Existing fields include Project = LAND OF DREAMS, Campaign Name = Mixed_Audience, Platform = ig, and source tag Digital. No pending reminders are recorded. The next step is to discuss the new interest and capture unit type, city, and state details."
+}
+
+[response]  request 13 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp follow‑up on investment interest",
+      "reasoning": "The lead missed several outbound calls (last on 2026-08-26) and a note on 2026-07-26 shows interest in a 2 BHK investment and asks to be contacted via WhatsApp.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Message the lead on WhatsApp to confirm his interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON and propose a convenient time for a call or site visit.",
+        "template_name": "",
+        "scheduled_time": "2026-09-08T10:00:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Advance lead to Hot",
+      "reasoning": "The lead expressed clear interest and investment purpose in a note (2026-07-26) and has a defined project, meeting the dependencies for the Hot state.",
+      "action": {
+        "action_type": "state_change",
+        "details": "hot",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing location details",
+      "reasoning": "The note on 2026-07-26 mentions the lead is from Mumbai, but the Area and City fields are empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Area: Mumbai, City: Mumbai",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Mumbai"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Mumbai"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your 2 BHK investment interest",
+    "body": "Dear Amar Kumar,\n\nI hope you are well. Following our earlier conversation about your interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON, could you let me know a convenient time for a call or a site visit?\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK/3 BHK investment at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. The lead is currently in the Qualified stage. Recent activity includes multiple missed outbound calls (last on 2026-08-26) and a note on 2026-07-26 indicating interest and a request for WhatsApp contact. No site visit or meeting has been scheduled yet. There are no pending reminders. Missing information includes the lead’s city/area (Mumbai)."
+}
+
+[response]  request 14 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Send interest acknowledgment SMS",
+      "reasoning": "Note on 23 Sep 2026 shows Tushar is now interested in the Land of Dreams project (3 BHK) and is from Agra; contacting now can keep the lead engaged.",
+      "action": {
+        "action_type": "sms",
+        "details": "Acknowledge interest in Land of Dreams 3 BHK and propose next steps",
+        "template_name": "Send Flat & Pricing Details",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Change state to Qualified",
+      "reasoning": "Lead now expresses interest and has required fields (Pre Sales Member, Project, Source Tags) filled, satisfying the Qualified state dependencies.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture Unit Type",
+      "reasoning": "Note mentions \"looking for 3BHK\" but the Unit Type field is empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 3 BHK",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Land of Dreams 3 BHK – Details & Next Steps",
+    "body": "Hi Tushar,\n\nThank you for your interest in the Land of Dreams project. I understand you are looking for a 3 BHK unit and are based in Agra.\n\nI’d be happy to share the latest floor plans, pricing details, and arrange a site visit at a time convenient for you. Please let me know your preferred date and time, or feel free to reply with any questions you may have.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Tushar Mapari is interested in the Land of Dreams project, looking for a 3 BHK unit and is from Agra. The latest note on 23 Sep 2026 records this interest. The lead has a history of multiple missed outbound calls since July 2026, with no answered contact. Current lead state is Unqualified with reason \"Did not respond after 10 attempts\". No pending reminders exist for this lead. Platform assigned: Ankita Uike; Customer ID: KD91107."
+}
+
+[response]  request 15 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss LAND OF DREAMS interest",
+      "reasoning": "A note on 2026-09-23 shows Sourabh is now interested in the LAND OF DREAMS project, wants a 5 BHK for investment with a budget around 70 Lakhs; a previous outbound call on 2026-08-07 was answered, indicating the lead is reachable.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Sourabh to confirm interest, discuss 5 BHK options, budget, and schedule a site visit for LAND OF DREAMS.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Immediate",
+      "title": "Capture missing lead details",
+      "reasoning": "The 2026-09-23 note provides budget, unit type, buying purpose and city, but the corresponding fields are empty in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Budget: 700 - 800, Unit Type: 5 BHK, Buying Purpose: Investment, City: Pune",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "700 - 800"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "5 BHK"
+          },
+          {
+            "name": "buying_purpose_19a51b85",
+            "label": "Buying Purpose",
+            "value": "Investment"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Pune"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in LAND OF DREAMS – Next steps",
+    "body": "Hi Sourabh,\n\nThank you for sharing your interest in the LAND OF DREAMS project. I understand you are looking for a 5 BHK unit for investment with a budget of around 70 Lakhs.\n\nWe have several options that match your requirements and would be happy to arrange a site visit at a time convenient for you. Please let me know your preferred date and time, and I will set it up.\n\nLooking forward to assisting you further.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sourabh Pharande is interested in the LAND OF DREAMS project, looking for a 5 BHK unit for investment with a budget around 70 Lakhs. The lead was created on 12 July 2026 and is currently in the Unqualified state. Recent interactions include an answered outbound call on 7 August 2026 and a note on 23 September 2026 indicating renewed interest. No pending reminders exist for this lead. Missing details include Budget, Unit Type, Buying Purpose, and City, which were mentioned in the latest note but not recorded."
+}
+
+[response]  request 16 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss 41 City Hub interest",
+      "reasoning": "A note at 2026-09-23T08:38:32Z shows Sangram is now interested in the 41 City Hub project, looking for a 3 BHK in Pune, Maharashtra, and the user is free from 14:08 today.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Sangram to discuss interest in 41 City Hub 3 BHK, confirm Pune location, and schedule a site visit.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "2026-09-23T14:15:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead details",
+      "reasoning": "The latest note provides values for Project (41 City Hub), City (Pune), States (Maharashtra) and Unit Type (3 BHK) which are currently empty or incomplete in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Project: 41 City Hub, City: Pune, States: Maharashtra, Unit Type: 3 BHK",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "project_4b930261",
+            "label": "Project",
+            "value": "41 City Hub"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Pune"
+          },
+          {
+            "name": "state_9d4",
+            "label": "States",
+            "value": "Maharashtra"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow-up on your interest in 41 City Hub",
+    "body": "Hi Sangram,\n\nThank you for sharing your interest in the 41 City Hub project. I understand you are looking for a 3 BHK in Pune, Maharashtra. I would be happy to provide more details and arrange a site visit at your convenience.\n\nPlease let me know a suitable time for a quick call or a visit, and I will coordinate accordingly.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sangram Chaure is now interested in the 41 City Hub project, looking for a 3 BHK in Pune, Maharashtra. The lead was created on 2026-07-14 and was previously marked unqualified due to an invalid number. Outbound call attempts on 2026-08-07 and 2026-07-16 missed the lead. No pending reminders exist for this lead. Current lead fields show Project set to LAND OF DREAMS, Campaign Name Mixed_Audience, and source tags Digital."
+}
+
+[response]  request 17 of 25
+{
+  "suggestions": [
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Upgrade to Hot",
+      "reasoning": "Note on 2026-07-26 shows clear investment interest and budget approval, and required fields for Hot (Project and Source Tags) are already filled.",
+      "action": {
+        "action_type": "state_change",
+        "details": "hot",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp follow‑up",
+      "reasoning": "Six outbound calls have been missed since 2026-08-07 and the lead previously asked to be contacted via WhatsApp; the latest note on 2026-08-26 is 'CNR'.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Send a WhatsApp message to check a convenient time for a call or site visit and address any questions.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Dear Amar Kumar,\n\nI hope you are well. I wanted to follow up on your interest in a 2 BHK/3 BHK investment at EVITA KRISALA TOWNSHIP COMMON, where you indicated a budget of 91 to 1.05 CR and a carpet area of 900‑1000 sq ft.\n\nWe have tried reaching you by phone several times and noted your preference for WhatsApp communication. Could you please let us know a convenient time for a quick call or a site visit? I am happy to answer any questions you may have.\n\nThank you for considering KRISALA BUILDTECH LLP for your investment.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in investing in 2 BHK/3 BHK units at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR and carpet area 900‑1000 sq ft. The lead was created on 2026-03-20 and has had multiple outbound calls, most recently missed on 2026-08-26, with the latest note \"CNR\" on that day. A note on 2026-07-26 indicates the lead is from Mumbai, interested in a 2 BHK investment and asked to be contacted via WhatsApp later. No pending reminders are recorded for this lead. The lead is currently in the \"Qualified\" state."
+}
+
+[response]  request 18 of 25
+{
+  "suggestions": [
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Move lead to Qualified",
+      "reasoning": "Note on 2026-09-23 shows interest in Land of Dreams 3BHK and dependencies for Qualified (platform, project, source_tags) are satisfied.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "WhatsApp message to discuss interest",
+      "reasoning": "Recent note (2026-09-23) indicates Tushar is interested in Land of Dreams 3BHK; after >4 missed calls, a WhatsApp message is appropriate.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Send a message: \"Hi Tushar, I see you’re interested in a 3 BHK at Land of Dreams. Let’s discuss details and schedule a site visit at your convenience.\"",
+        "template_name": "",
+        "scheduled_time": "2026-09-23T14:30:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing Unit Type and City",
+      "reasoning": "Note mentions 3BHK and that Tushar is from Agra, but fields Unit Type and City are empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 3 BHK, City: Agra",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          },
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Agra"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in Land of Dreams – 3 BHK",
+    "body": "Hi Tushar,\n\nThank you for expressing interest in a 3 BHK at the Land of Dreams project. I’d be happy to provide more details and arrange a site visit at a time that suits you.\n\nPlease let me know your preferred date and time, or feel free to reply here.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Tushar Mapari is interested in the \"Land of Dreams\" project, looking for a 3 BHK. The lead was created on 2026-07-06 and is currently in the Unqualified state. A note on 2026-09-23 indicates renewed interest from Agra. No successful contact has been made; multiple outbound calls were missed, the last on 2026-08-08. There are no pending reminders for this lead. Missing key details: Unit Type and City are not recorded."
+}
+
+[response]  request 19 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss new interest",
+      "reasoning": "A note on 2026-09-23 states Sourabh is now interested in the LAND OF DREAMS project, wants a 5 BHK for investment with a budget around 70 Lakh and is from Pune.",
+      "action": {
+        "action_type": "call",
+        "details": "Follow Up Call",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "2026-09-23T14:10:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing interest details",
+      "reasoning": "The latest note provides values for Unit Type, Budget, Buying Purpose and Area that are currently empty in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 5 BHK, Budget: 66 to 70 Lakhs, Buying Purpose: Investment, Area: Pune",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "5 BHK"
+          },
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "66 to 70 Lakhs"
+          },
+          {
+            "name": "buying_purpose_19a51b85",
+            "label": "Buying Purpose",
+            "value": "Investment"
+          },
+          {
+            "name": "area__ac1e6456",
+            "label": "Area",
+            "value": "Pune"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in LAND OF DREAMS – next steps",
+    "body": "Hi Sourabh,\n\nThank you for sharing your interest in the LAND OF DREAMS project. I understand you are looking for a 5 BHK unit for investment with a budget of around 70 Lakh and that you are based in Pune.\n\nI would be happy to provide you with more details, including floor plans, pricing, and the investment potential of this project. Could we schedule a brief call or a site visit at your convenience?\n\nPlease let me know a suitable time, or feel free to reply to this email with any questions you may have.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sourabh Pharande is interested in the LAND OF DREAMS project, seeking a 5 BHK for investment with a budget of about 70 Lakh and is located in Pune. The latest note on 2026-09-23 captures this interest. Earlier calls on 2026-07-13 and 2026-08-07 were answered, with no pending reminders. The lead is currently in the Unqualified state."
+}
+
+[response]  request 20 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss new interest",
+      "reasoning": "Latest note (2026-09-23) says Sangram is now interested in 41 City Hub, 3 BHK, from Pune, Maharashtra; no recent contact and the user is free today from 14:08 onward.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Sangram to confirm interest in 41 City Hub (3 BHK) and gather details to move the lead forward.",
+        "template_name": "",
+        "scheduled_time": "2026-09-23T14:30:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing location and unit details",
+      "reasoning": "Note provides city Pune, state Maharashtra, and unit type 3 BHK which are empty in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "City: Pune, States: Maharashtra, Unit Type: 3 BHK",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Pune"
+          },
+          {
+            "name": "state_9d4",
+            "label": "States",
+            "value": "Maharashtra"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Regarding your interest in 41 City Hub – 3 BHK",
+    "body": "Hi Sangram,\n\nI hope you’re doing well. I saw your recent note expressing interest in the 41 City Hub project, specifically a 3 BHK unit, and that you’re based in Pune, Maharashtra.\n\nWe’d love to share more details about the available options and schedule a site visit at your convenience. Please let me know a suitable time for a quick call or if you prefer to continue via email.\n\nLooking forward to assisting you further.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sangram is now interested in the 41 City Hub project, looking for a 3 BHK in Pune, Maharashtra. The lead was created on 2026-07-14 via a Facebook form with Digital source and Mixed_Audience campaign. Previous outbound calls on 2026-08-07 and 2026-07-16 missed the lead. The lead is currently marked Unqualified due to an Invalid Number. No pending reminders exist. Missing details: City, State, and Unit Type fields need to be captured."
+}
+
+[response]  request 21 of 25
+{
+  "suggestions": [
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Update lead to Warm",
+      "reasoning": "Lead expressed investment interest in a 2 BHK at EVITA KRISALA TOWNSHIP COMMON and has required project and source tags, matching the Warm state criteria.",
+      "action": {
+        "action_type": "state_change",
+        "details": "warm",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp follow‑up to schedule site visit",
+      "reasoning": "Six outbound calls missed since 7 Aug and the lead showed interest in a 2 BHK investment; a WhatsApp message can re‑engage and arrange a site visit or video call.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Introduce yourself, reference Amar's interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON, and ask for a convenient time for a site visit or video conference.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your 2 BHK investment interest",
+    "body": "Hi Amar,\n\nI hope you are well. I wanted to follow up on your interest in a 2 BHK (or 3 BHK) at EVITA KRISALA TOWNSHIP COMMON. Could you let me know a convenient time for a site visit or a video call to discuss the options?\n\nLooking forward to your reply.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in investing in a 2 BHK/3 BHK at EVITA KRISALA TOWNSHIP COMMON with a budget of 91‑1.05 CR. The lead was created on 20 Mar 2026 and had an inbound answered call on that day. Since July, multiple outbound calls have been missed, the latest on 26 Aug 2026. No site visit has been scheduled yet. There are no pending reminders on this lead."
+}
+
+[response]  request 22 of 25
+{
+  "suggestions": [
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Update lead to Qualified",
+      "reasoning": "Note on 2026-09-23 shows interest in Land of Dreams project; required fields platform, project, and source tags are present, allowing transition from Unqualified to Qualified.",
+      "action": {
+        "action_type": "state_change",
+        "details": "qualified",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "SMS about Land of Dreams interest",
+      "reasoning": "Latest note (2026-09-23) indicates Tushar is interested in Land of Dreams 3 BHK; after more than four missed calls, a call is not advisable, so send an SMS.",
+      "action": {
+        "action_type": "sms",
+        "details": "Reach out to discuss interest in the Land of Dreams 3 BHK unit and gather preferences.",
+        "template_name": "",
+        "scheduled_time": "2026-09-23T14:30:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Capture missing location and unit type",
+      "reasoning": "Note mentions Tushar is from Agra and looking for a 3 BHK; corresponding fields Area and Unit Type are empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Area: Agra, Unit Type: 3 BHK",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "area_0b6",
+            "label": "Area",
+            "value": "Agra"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "3 BHK"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Land of Dreams 3 BHK – Your Interest",
+    "body": "Hi Tushar,\n\nI hope you’re doing well. I saw your recent note expressing interest in the Land of Dreams project and a 3 BHK unit. I’d love to share more details and understand your preferences better.\n\nCould you let me know a convenient time for a quick chat or if you prefer any specific information via email?\n\nLooking forward to assisting you.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Tushar is interested in the Land of Dreams project, looking for a 3 BHK unit. The lead was previously marked Unqualified due to no response, but a recent note on 23 Sep 2026 shows renewed interest. Latest activity is the interest note dated 23 Sep 2026. Multiple outbound calls have been missed with no successful contact. There are no pending reminders for this lead. Missing fields: Area and Unit Type need to be captured."
+}
+
+[response]  request 23 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to capture renewed interest",
+      "reasoning": "A note on 2026-09-23 shows Sourabh is now interested in the LAND OF DREAMS project, wants a 5 BHK for investment with a budget of ~70 Lakh, and no reminder is pending.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss his interest in LAND OF DREAMS, confirm 5 BHK unit, investment purpose, budget and agree on next steps (e.g., site visit or documentation).",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing interest details",
+      "reasoning": "The latest note provides values for Unit Type, Buying Purpose, Budget and Area that are currently empty in the lead record.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Unit Type: 5 BHK, Buying Purpose: Investment, Budget: 70 Lakh, Area: Pune",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "5 BHK"
+          },
+          {
+            "name": "buying_purpose_19a51b85",
+            "label": "Buying Purpose",
+            "value": "Investment"
+          },
+          {
+            "name": "new_budget_001",
+            "label": "Budget",
+            "value": "70 Lakh"
+          },
+          {
+            "name": "location__ac1e6456",
+            "label": "Area",
+            "value": "Pune"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Your interest in LAND OF DREAMS – Next steps",
+    "body": "Hi Sourabh,\n\nThank you for sharing your interest in the LAND OF DREAMS project. I understand you are looking for a 5 BHK unit for investment with a budget of around 70 Lakh and that you are based in Pune.\n\nWe would be happy to provide you with more details, floor plans, and pricing, and arrange a site visit at your convenience.\n\nPlease let me know a suitable time for a brief call or meeting, or feel free to reply to this email with any questions you may have.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sourabh Pharande is interested in the LAND OF DREAMS project, looking for a 5 BHK unit for investment. He is from Pune and mentioned a budget of around 70 Lakh. The latest note on 2026-09-23 records this renewed interest. No pending reminders or tasks are currently open for this lead. The lead is currently in the Unqualified state."
+}
+
+[response]  request 24 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call to discuss new project interest",
+      "reasoning": "A note at 2026-09-23 14:08 IST shows Sangram is now interested in the 41 City Hub project (3 BHK) and previous outbound calls were missed, so a prompt call can re‑engage him.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Sangram to confirm interest in 41 City Hub 3 BHK and update his project preference.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update Project preference",
+      "reasoning": "The latest note mentions interest in 41 City Hub, which is not recorded in the Project field (currently only LAND OF DREAMS).",
+      "action": {
+        "action_type": "field_update",
+        "details": "Project: 41 City Hub",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "project_4b930261",
+            "label": "Project",
+            "value": "41 City Hub"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your interest in 41 City Hub",
+    "body": "Hi Sangram,\n\nI hope you’re well. I noticed you’re now interested in the 41 City Hub project and looking for a 3 BHK in Pune. I’d love to share more details and arrange a site visit at your convenience.\n\nPlease let me know a suitable time, or feel free to reply to this email with any questions you may have.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Sangram Chaure initially inquired about the LAND OF DREAMS project via a Facebook form on 2026-07-14. A note on 2026-09-23 indicates he is now interested in the 41 City Hub project, seeking a 3 BHK in Pune, Maharashtra. Two outbound calls on 2026-07-16 and 2026-08-07 were missed. No pending reminders exist. The lead is currently in the Unqualified state."
+}
+
+[response]  request 25 of 25
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "WhatsApp follow‑up to schedule site visit",
+      "reasoning": "Six outbound calls missed since 2026-08-07 and the lead noted interest in a 2 BHK investment; the lead asked for WhatsApp contact, so a message is needed to propose a site visit for EVITA KRISALA TOWNSHIP COMMON.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Propose a site visit for EVITA KRISALA TOWNSHIP COMMON and ask for a convenient date/time.",
+        "template_name": "",
+        "scheduled_time": "2026-09-08T10:00:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Same Day",
+      "title": "Change state to Warm",
+      "reasoning": "Lead is qualified, has expressed investment interest and budget, but no site‑visit scheduled; moving to Warm reflects current engagement level.",
+      "action": {
+        "action_type": "state_change",
+        "details": "warm",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Add City information",
+      "reasoning": "Note on 2026-07-26 states the lead is from Mumbai, but the City field is empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "City: Mumbai",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Mumbai"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Hi Amar,\n\nThank you for sharing your interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON. I understand you’d like to connect via WhatsApp, and I’m happy to arrange that.\n\nCould you let me know a convenient date and time for a site visit? We can also discuss any specific requirements you have.\n\nLooking forward to your reply.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in investment for 2 BHK/3 BHK at EVITA KRISALA TOWNSHIP COMMON with a budget of 91‑1.05 CR and carpet area 900‑1000 sqft. The lead received multiple outbound calls, the latest on 2026-08-26 was missed, and the most recent note on 2026-08-26 recorded “CNR”. A note on 2026-07-26 indicated the lead is from Mumbai, wants WhatsApp contact, and is interested in a 2 BHK investment. No site‑visit has been scheduled and there are no pending reminders. The lead is currently in the Qualified stage. An information gap exists for the City field (Mumbai)."
+}

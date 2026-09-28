@@ -1,0 +1,151 @@
+========================================================================
+2026-09-22 14:57:09  |  model: cyankiwi/Qwen3-Next-80B-A3B-Instruct-AWQ-4bit  |  prompt: krisala-lead-suggestion  |  concurrency: 100  |  requests: 100  |  runs: 1  |  thinking: off
+max_tokens: 5000  |  temperature: 0.3
+========================================================================
+
+[load]
+  concurrency          : 100
+  requests             : 100  (ok 100, failed 0)
+  wall time            : 271.589 s
+  requests/s           : 0.37
+
+[throughput]  aggregate over the whole batch (this is the number that scales with load)
+  completion tok/s     : 183.2
+  total tok/s          : 7798.7   (prompt + completion)
+  prompt tokens        : 2068300 total   (20683 avg / request)
+  completion tokens    : 49749 total   (497 avg / request)
+
+[latency]  per request         mean / p50 / p95 / max
+  time to first token  : 122.086 / 116.805 / 245.863 / 259.629 s
+  total time           : 220.416 / 247.533 / 270.174 / 271.449 s
+  generation tok/s     : 7.1 / 4.2 / 21.0 / 49.4   (per request, drops as concurrency rises)
+
+[gpu]  sampled every 0.25s across the whole batch with nvidia-smi
+  gpu 0: util avg 100%  max 100%  |  mem peak 77743/81920 MiB  |  923 samples
+
+[per request]   #   start_s   ttft_s   total_s   prompt_tok   comp_tok   gen_tok_s   prompt
+    1     0.000    2.272    88.549        20683        399         4.6   krisala-lead-suggestion
+    2     0.003    4.007   143.693        20683        618         4.4   krisala-lead-suggestion
+    3     0.004    5.781    93.766        20683        399         4.5   krisala-lead-suggestion
+    4     0.007    7.575    93.501        20683        388         4.5   krisala-lead-suggestion
+    5     0.008   11.233   147.927        20683        593         4.3   krisala-lead-suggestion
+    6     0.010   13.087    99.471        20683        381         4.4   krisala-lead-suggestion
+    7     0.012    9.397   200.845        20683        816         4.3   krisala-lead-suggestion
+    8     0.013   14.962   106.311        20683        397         4.3   krisala-lead-suggestion
+    9     0.015   18.946   107.157        20683        379         4.3   krisala-lead-suggestion
+   10     0.016   22.866   158.784        20683        571         4.2   krisala-lead-suggestion
+   11     0.017   17.020   169.953        20683        641         4.2   krisala-lead-suggestion
+   12     0.019   29.089   171.348        20683        585         4.1   krisala-lead-suggestion
+   13     0.021   20.894   115.389        20683        400         4.2   krisala-lead-suggestion
+   14     0.021   26.867   159.898        20683        555         4.2   krisala-lead-suggestion
+   15     0.024   24.851   120.772        20683        400         4.2   krisala-lead-suggestion
+   16     0.025   31.137   163.777        20683        548         4.1   krisala-lead-suggestion
+   17     0.027   33.222   130.037        20683        393         4.1   krisala-lead-suggestion
+   18     0.028   35.327   171.872        20683        557         4.1   krisala-lead-suggestion
+   19     0.030   37.465   189.316        20683        624         4.1   krisala-lead-suggestion
+   20     0.031   41.960   212.624        20683        696         4.1   krisala-lead-suggestion
+   21     0.032   39.601   137.951        20683        392         4.0   krisala-lead-suggestion
+   22     0.034   44.144   188.627        20683        590         4.1   krisala-lead-suggestion
+   23     0.035   50.842   141.870        20683        378         4.2   krisala-lead-suggestion
+   24     0.037   46.340   208.526        20683        661         4.1   krisala-lead-suggestion
+   25     0.040   48.582   145.357        20683        401         4.1   krisala-lead-suggestion
+   26     0.041   53.327   197.751        20683        591         4.1   krisala-lead-suggestion
+   27     0.042   55.624   201.342        20683        594         4.1   krisala-lead-suggestion
+   28     0.044   60.295   154.001        20683        381         4.1   krisala-lead-suggestion
+   29     0.045   57.946   152.026        20683        384         4.1   krisala-lead-suggestion
+   30     0.047   62.889   209.375        20683        592         4.0   krisala-lead-suggestion
+   31     0.048   65.281   194.801        20683        529         4.1   krisala-lead-suggestion
+   32     0.050   70.136   210.411        20683        566         4.0   krisala-lead-suggestion
+   33     0.051   67.685   166.551        20683        395         4.0   krisala-lead-suggestion
+   34     0.053   72.819   169.919        20683        386         4.0   krisala-lead-suggestion
+   35     0.054   75.292   236.190        20683        640         4.0   krisala-lead-suggestion
+   36     0.055   77.791   228.681        20683        602         4.0   krisala-lead-suggestion
+   37     0.057   80.314   218.049        20683        553         4.0   krisala-lead-suggestion
+   38     0.058   85.653   178.758        20683        367         3.9   krisala-lead-suggestion
+   39     0.060   96.312   247.673        20683        600         4.0   krisala-lead-suggestion
+   40     0.061   83.093   247.393        20683        650         4.0   krisala-lead-suggestion
+   41     0.062   88.244   181.233        20683        366         3.9   krisala-lead-suggestion
+   42     0.063   99.179   195.749        20683        399         4.1   krisala-lead-suggestion
+   43     0.065   93.705   225.688        20683        529         4.0   krisala-lead-suggestion
+   44     0.066   104.440   232.667        20683        514         4.0   krisala-lead-suggestion
+   45     0.068   91.089   227.819        20683        547         4.0   krisala-lead-suggestion
+   46     0.069   101.793   249.832        20683        587         4.0   krisala-lead-suggestion
+   47     0.071   109.989   257.965        20683        586         4.0   krisala-lead-suggestion
+   48     0.072   107.097   204.351        20683        400         4.1   krisala-lead-suggestion
+   49     0.074   115.335   261.787        20683        639         4.4   krisala-lead-suggestion
+   50     0.075   112.644   259.991        20683        592         4.0   krisala-lead-suggestion
+   51     0.077   120.995   218.031        20683        398         4.1   krisala-lead-suggestion
+   52     0.078   123.713   223.508        20683        408         4.1   krisala-lead-suggestion
+   53     0.079   118.275   206.836        20683        367         4.1   krisala-lead-suggestion
+   54     0.081   126.701   224.554        20683        401         4.1   krisala-lead-suggestion
+   55     0.084   132.223   268.007        20683        828         6.1   krisala-lead-suggestion
+   56     0.085   129.454   261.623        20683        582         4.4   krisala-lead-suggestion
+   57     0.087   135.267   263.093        20683        610         4.8   krisala-lead-suggestion
+   58     0.088   145.050   246.016        20683        390         3.9   krisala-lead-suggestion
+   59     0.090   140.919   263.058        20683        587         4.8   krisala-lead-suggestion
+   60     0.091   137.892   262.076        20683        566         4.6   krisala-lead-suggestion
+   61     0.092   150.900   254.438        20683        400         3.9   krisala-lead-suggestion
+   62     0.095   159.566   259.907        20683        396         3.9   krisala-lead-suggestion
+   63     0.096   147.841   249.013        20683        391         3.9   krisala-lead-suggestion
+   64     0.099   156.484   266.596        20683        648         5.9   krisala-lead-suggestion
+   65     0.100   153.689   257.169        20683        400         3.9   krisala-lead-suggestion
+   66     0.102   162.341   264.948        20683        559         5.4   krisala-lead-suggestion
+   67     0.104   165.143   258.741        20683        365         3.9   krisala-lead-suggestion
+   68     0.106   168.215   267.337        20683        640         6.5   krisala-lead-suggestion
+   69     0.107   171.004   262.210        20683        429         4.7   krisala-lead-suggestion
+   70     0.109   173.755   260.220        20683        355         4.1   krisala-lead-suggestion
+   71     0.111   176.780   266.902        20683        589         6.5   krisala-lead-suggestion
+   72     0.112   179.558   266.945        20683        581         6.6   krisala-lead-suggestion
+   73     0.114   182.335   266.718        20683        561         6.6   krisala-lead-suggestion
+   74     0.115   191.769   262.856        20683        362         5.1   krisala-lead-suggestion
+   75     0.116   185.385   267.700        20683        598         7.3   krisala-lead-suggestion
+   76     0.118   194.419   263.265        20683        366         5.3   krisala-lead-suggestion
+   77     0.119   188.006   263.207        20683        401         5.3   krisala-lead-suggestion
+   78     0.120   197.944   265.211        20683        419         6.2   krisala-lead-suggestion
+   79     0.121   203.768   265.693        20683        417         6.7   krisala-lead-suggestion
+   80     0.122   200.733   264.950        20683        399         6.2   krisala-lead-suggestion
+   81     0.124   206.545   265.055        20683        382         6.5   krisala-lead-suggestion
+   82     0.125   209.297   264.926        20683        367         6.6   krisala-lead-suggestion
+   83     0.126   220.463   265.487        20683        348         7.7   krisala-lead-suggestion
+   84     0.128   212.018   270.150        20683        640        11.0   krisala-lead-suggestion
+   85     0.129   214.992   270.630        20683        669        12.0   krisala-lead-suggestion
+   86     0.130   217.723   269.607        20683        576        11.1   krisala-lead-suggestion
+   87     0.132   240.219   271.449        20683        656        21.0   krisala-lead-suggestion
+   88     0.133   226.182   269.771        20683        558        12.8   krisala-lead-suggestion
+   89     0.135   223.449   269.320        20683        534        11.6   krisala-lead-suggestion
+   90     0.136   228.886   266.987        20683        382        10.0   krisala-lead-suggestion
+   91     0.137   231.831   267.177        20683        380        10.8   krisala-lead-suggestion
+   92     0.139   234.522   267.530        20683        388        11.8   krisala-lead-suggestion
+   93     0.140   245.712   268.316        20683        391        17.3   krisala-lead-suggestion
+   94     0.142   242.949   268.088        20683        388        15.4   krisala-lead-suggestion
+   95     0.144   237.234   267.235        20683        363        12.1   krisala-lead-suggestion
+   96     0.146   248.718   269.222        20683        435        21.2   krisala-lead-suggestion
+   97     0.147   251.419   268.567        20683        385        22.5   krisala-lead-suggestion
+   98     0.149   257.119   271.377        20683        588        41.2   krisala-lead-suggestion
+   99     0.150   254.129   271.128        20683        574        33.8   krisala-lead-suggestion
+  100     0.152   259.629   271.401        20683        581        49.4   krisala-lead-suggestion
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7523 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]  request 1 of 100 (others omitted; use --all-responses)
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Follow up with Amar Kumar on site visit interest",
+      "reasoning": "Amar Kumar expressed interest in 2 BHK at EVITA KRISALA TOWNSHIP COMMON on 2026-07-26 and said he would reconnect when free; since then, 6 outbound calls have been missed with no response, and the lead remains qualified with no progress.",
+      "action": {
+        "action_type": "sms",
+        "details": "Follow up regarding interest in 2 BHK at EVITA KRISALA TOWNSHIP COMMON; mention his previous note about reconnecting when free and ask if he’s available for a site visit or video call this week."
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Following up on your interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Hi Amar Kumar,\n\nI hope you’re doing well. I’m following up on your interest in a 2 BHK at EVITA KRISALA TOWNSHIP COMMON, which you mentioned on July 26. You noted you’d reconnect when free — I’d love to know if you’re available for a site visit or video call this week.\n\nLooking forward to hearing from you.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is a qualified lead interested in a 2 BHK at EVITA KRISALA TOWNSHIP COMMON for investment, with a budget of ₹91 to 1.05 CR. He was last contacted on July 26, stating he would reconnect when free. Since then, six outbound calls have been missed with no response."
+}

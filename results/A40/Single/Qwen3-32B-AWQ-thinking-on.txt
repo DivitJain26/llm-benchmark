@@ -1,0 +1,77 @@
+========================================================================
+2026-09-18 10:33:10  |  model: Qwen/Qwen3-32B-AWQ  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: on
+========================================================================
+
+[metrics]
+  time to first token  : 0.213 s
+  total time           : 50.102 s
+  prompt tokens        : 21638
+  completion tokens    : 1111
+  total tokens         : 22749
+  generation tok/s     : 22.3
+  overall tok/s        : 22.2
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 98%  max 100%  |  mem peak 43933/46068 MiB  |  173 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+<think>
+Okay, let's tackle this step by step. First, I need to analyze the lead's context and the company's settings to generate the right suggestions. The lead is in the "qualified" state, which according to the company's state descriptions, means it meets the basic criteria to be a genuine sales opportunity.
+
+Looking at the events, there have been several outbound calls where the lead missed the calls. The latest event is a note from August 26, 2026, saying "CNR" (probably "Call Not Received"). The last successful contact was on July 11, 2026, where the lead mentioned being from Mumbai, an investor interested in a 2 BHK HKT, and not available for a VC meeting that day but promised to connect when free.
+
+Now, checking the failed-call switch rule: there are multiple outbound calls that were missed. Let's count them. From the events, there are calls on August 26, 23, 14, 13, 8, and 7, all with "lead_missed" status. That's 6 missed calls. Since the threshold is 4, we should switch to SMS/WhatsApp. The lead has a phone number, so SMS is an option.
+
+Next, the next best action. The lead hasn't been contacted successfully in a while, and the last note indicates they might be busy. The sales agent needs to follow up, possibly via SMS since calls aren't working. The message should mention the previous attempts and offer to connect via WhatsApp if preferred, as per the note from March 20.
+
+For the info gap, looking at the lead fields, "project_4b930261" is filled with "EVITA KRISALA TOWNSHIP COMMON". The state transition from "qualified" allows moving to "hot", "warm", etc. But since there's no info on the lead's current interest beyond the note, maybe no state change is needed yet. However, if there's a need to update based on recent interactions, but the data doesn't show a clear move.
+
+The email draft should be a follow-up, mentioning the previous attempts and offering assistance. The summary should highlight the lead's interest in 2 BHK for investment and the recent missed calls.
+
+Putting it all together, the next best action is an SMS to follow up, using the "Follow Up Call" template but adjusted to SMS. The info gap isn't necessary here since the project field is already filled. The state remains "qualified" unless there's new info, which there isn't. So the main suggestion is the SMS follow-up.
+</think>
+
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Follow up via SMS after multiple missed calls",
+      "reasoning": "Lead has 6 unanswered outbound calls in the last 2 months (Aug 7-26, 2026). Last successful contact on July 11, 2026, indicated interest in 2 BHK HKT for investment but no availability for VC. Per channel rules, switch to SMS after 4+ failed calls.",
+      "action": {
+        "action_type": "sms",
+        "details": "Message: 'Amar, we noticed you missed our recent calls. Are you still interested in the 2 BHK HKT option at EVITA KRISALA TOWNSHIP COMMON? Let’s connect via WhatsApp if preferred.'",
+        "template_name": "Follow Up Call",
+        "scheduled_time": ""
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Next Day",
+      "title": "Capture WhatsApp preference from July 11 note",
+      "reasoning": "July 11, 2026 note explicitly states 'ask for whatsapp will call back me' but no field records this preference. Required for 'hot' state transition which depends on project and source_tags (both filled).",
+      "action": {
+        "action_type": "field_update",
+        "details": "Preferred Channel: WhatsApp",
+        "updates": [
+          {
+            "name": "preferred_channel",
+            "label": "Preferred Channel",
+            "value": "WhatsApp"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on Your 2 BHK HKT Inquiry",
+    "body": "Dear Amar,\n\nWe noticed you missed our recent calls regarding the 2 BHK HKT option at EVITA KRISALA TOWNSHIP COMMON. As discussed on July 11, we’re ready to assist when you’re available. Would you prefer to connect via WhatsApp for faster communication?\n\nBest regards,\n[Your Company Name]"
+  },
+  "summary": "Amar Kumar (Investor) is interested in 2 BHK HKT units at EVITA KRISALA TOWNSHIP COMMON with budget 91-1.05 CR. Last active July 11, 2026, when he requested WhatsApp follow-up. 6 unanswered calls since Aug 7, 2026. No pending reminders."
+}

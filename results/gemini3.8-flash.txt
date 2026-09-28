@@ -1,0 +1,69 @@
+{
+  "response_id": "ceasap2INfnZjuMP4LzjsQg",
+  "model_version": "gemini-3.5-flash-lite",
+  "create_time": null,
+  "prompt_feedback": null,
+  "candidates": [
+    {
+      "index": 0,
+      "finish_reason": "STOP",
+      "role": "model",
+      "thought_signature": "<binary, truncated>",
+      "content": {
+        "suggestions": [
+          {
+            "type": "Next Best Action",
+            "priority": "Same Day",
+            "title": "Send WhatsApp message to reconnect",
+            "reasoning": "Amar has missed 6 recent outbound call attempts, with his last note on July 26 stating he would connect when free.",
+            "action": {
+              "action_type": "whatsapp",
+              "details": "Send a WhatsApp message to Amar inquiring about his availability to discuss his 2 BHK investment interest.",
+              "template_name": "",
+              "scheduled_time": "",
+              "updates": []
+            },
+            "confidence": "high"
+          },
+          {
+            "type": "Info Gap",
+            "priority": "This Week",
+            "title": "Update lead city information",
+            "reasoning": "Notes indicate Amar is from Mumbai, but the City field is currently empty.",
+            "action": {
+              "action_type": "field_update",
+              "details": "City: Mumbai",
+              "template_name": "",
+              "scheduled_time": "",
+              "updates": [
+                { "name": "city_0b6", "label": "City", "value": "Mumbai" }
+              ]
+            },
+            "confidence": "high"
+          }
+        ],
+        "email_draft": {
+          "subject": "Following up on your property investment interest",
+          "body": "Dear Amar, We hope you are doing well. We are following up regarding your investment interest in a 2 BHK property. Please let us know when you are free to connect so we can assist you further. Best regards, KRISALA BUILDTECH LLP"
+        },
+        "summary": "Amar kumar is interested in a 2 BHK and 3 BHK property at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR for investment. Previous notes mention he is from Mumbai and will connect when free after multiple missed call attempts. No open reminders or tasks currently exist on this lead."
+      }
+    }
+  ],
+  "usage_metadata": {
+    "prompt_token_count": 18895,
+    "cached_content_token_count": 16867,
+    "thoughts_token_count": 2346,
+    "candidates_token_count": 470,
+    "total_token_count": 21711,
+    "prompt_tokens_details": [
+      { "modality": "TEXT", "token_count": 18895 }
+    ],
+    "cache_tokens_details": [
+      { "modality": "TEXT", "token_count": 16867 }
+    ]
+  },
+  "sdk_http_response": {
+    "headers": "<dict, 12 entries>"
+  }
+}

@@ -1,0 +1,44 @@
+========================================================================
+2026-09-21 06:39:22  |  model: cyankiwi/Qwen3.8-27B-AWQ-INT4  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 14.920 s
+  total time           : 56.685 s
+  prompt tokens        : 21834
+  completion tokens    : 560
+  total tokens         : 22394
+  generation tok/s     : 13.4
+  overall tok/s        : 9.9
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 65%  max 100%  |  mem peak 42341/46068 MiB  |  198 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Send SMS to re-engage Amar Kumar",
+      "reasoning": "Amar Kumar has missed 6 consecutive outbound calls since 2026-08-07 (latest on 2026-08-26), exceeding the 4-attempt threshold for switching channels. As a qualified investor interested in 2 BHK at EVITA KRISALA TOWNSHIP COMMON, he needs a low-friction touchpoint to restart the conversation.",
+      "action": {
+        "action_type": "sms",
+        "details": "Hi Amar, this is [Agent Name] from KRISALA BUILDTECH LLP. We tried reaching you regarding the 2 BHK investment opportunity at EVITA KRISALA TOWNSHIP COMMON. Please let us know a convenient time to connect or if you'd like more details.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow-up: 2 BHK Investment Opportunity at EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Dear Amar,\n\nI hope this message finds you well.\n\nI am following up on our previous attempts to connect regarding your interest in the 2 BHK investment opportunity at EVITA KRISALA TOWNSHIP COMMON. We understand you are busy, but we would value the chance to discuss how this property aligns with your investment goals.\n\nPlease let us know a convenient time for a brief call or if you would prefer to schedule a site visit. We are happy to accommodate your schedule.\n\nBest regards,\n\n[Agent Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is a qualified investor from Mumbai interested in 2 BHK and 3 BHK units at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. The lead was created on 2026-03-20 via an inbound call, and the last successful interaction was on 2026-07-11. Since then, 6 outbound calls have been missed by the lead, with the most recent attempt on 2026-08-26. There are no pending reminders or open tasks currently assigned to this lead."
+}

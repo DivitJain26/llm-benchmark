@@ -1,0 +1,44 @@
+========================================================================
+2026-09-21 06:15:26  |  model: Qwen/Qwen3-4B  |  prompt: krisala_lead_suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 0.178 s
+  total time           : 10.046 s
+  prompt tokens        : 21642
+  completion tokens    : 424
+  total tokens         : 22066
+  generation tok/s     : 43.0
+  overall tok/s        : 42.2
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 94%  max 100%  |  mem peak 43899/46068 MiB  |  36 samples
+
+[prompt]  file: prompts/krisala_lead_suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Follow up with Amar Kumar on 2 BHK investment interest",
+      "reasoning": "Amar Kumar is qualified and interested in 2 BHK units for investment. Recent note indicates he is from Mumbai and has budget flexibility. A follow-up call is needed to schedule a video conference (VC) meeting as mentioned in the note.",
+      "action": {
+        "action_type": "call",
+        "details": "Schedule a video conference with Amar Kumar to discuss 2 BHK investment options for EVITA KRISALA TOWNSHIP COMMON.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "2026-09-08T12:00:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow-up on 2 BHK Investment Interest",
+    "body": "Hi Amar,\n\nI hope you're doing well. I wanted to follow up on our previous discussion regarding 2 BHK units for investment. We were talking about the EVITA KRISALA TOWNSHIP COMMON project. I understand you're looking for options and would like to schedule a video conference to discuss further.\n\nPlease let me know a convenient time for you. Looking forward to your response.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is qualified and interested in 2 BHK units for investment at a budget of 91 to 1.05 CR. He is from Mumbai and has shown interest in EVITA KRISALA TOWNSHIP COMMON. Recent note indicates he is available for a video conference. No existing reminders. Last event was a note on 2026-08-26."
+}

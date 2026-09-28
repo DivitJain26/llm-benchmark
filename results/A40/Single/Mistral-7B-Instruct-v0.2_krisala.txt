@@ -1,0 +1,56 @@
+========================================================================
+2026-09-21 12:13:11  |  model: mistralai/Mistral-7B-Instruct-v0.2  |  prompt: krisala-lead-suggestion  |  runs: 1
+========================================================================
+
+[metrics]
+  time to first token  : 5.595 s
+  total time           : 26.067 s
+  prompt tokens        : 24719
+  completion tokens    : 628
+  total tokens         : 25347
+  generation tok/s     : 30.7
+  overall tok/s        : 24.1
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 98%  max 100%  |  mem peak 43603/46068 MiB  |  91 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7865 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+ Based on the provided context, here are the suggestions for the given lead:
+
+```json
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action | Call",
+      "priority": "Immediate",
+      "title": "Follow up with Amar Kumar regarding his interest in a 2 BHK investment property",
+      "reasoning": "Amar Kumar expressed interest in a 2 BHK investment property during a previous call. He mentioned that he is an investor with a budget of 91 to 1.05 CR. He also mentioned that he is not available for a VC meet today but will connect once he is free.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar on +917900118293 to discuss his interest in a 2 BHK investment property and answer any questions he may have."
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Next Best Action | Email",
+      "priority": "Same Day",
+      "title": "Send follow-up email to Amar Kumar regarding his interest in a 2 BHK investment property",
+      "reasoning": "Amar Kumar expressed interest in a 2 BHK investment property during a previous call. He mentioned that he is an investor with a budget of 91 to 1.05 CR. He also mentioned that he is not available for a VC meet today but will connect once he is free. Sending a follow-up email with more information about the property and its benefits could help move the conversation forward.",
+      "action": {
+        "action_type": "email",
+        "details": {
+          "subject": "Follow-up on your interest in a 2 BHK investment property",
+          "body": "Dear Amar Kumar,\n\nI wanted to follow up on our previous conversation regarding your interest in a 2 BHK investment property. I believe this property would be a great investment opportunity for you, given your budget and investment goals. I have attached some additional information about the property for your review. Please let me know if you have any questions or if you would like to schedule a call to discuss further.\n\nBest regards,\n[Your Name]"
+        }
+      },
+      "confidence": "high"
+    }
+  ]
+}
+```
+
+These suggestions prioritize a call and an email as the next best actions based on the available context. The call suggestion is given a higher priority as it is an immediate action, while the email suggestion is given a lower priority as it can be sent at a later time. Both suggestions include specific reasoning and actions tailored to the lead's previous interactions and interests.

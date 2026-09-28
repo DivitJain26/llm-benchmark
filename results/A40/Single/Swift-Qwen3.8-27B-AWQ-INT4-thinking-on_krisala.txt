@@ -1,0 +1,177 @@
+========================================================================
+2026-09-22 06:07:47  |  model: cyankiwi/Swift-Qwen3.8-27B-AWQ-INT4  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: on
+========================================================================
+
+[metrics]
+  time to first token  : 0.707 s
+  total time           : 327.284 s
+  prompt tokens        : 21874
+  completion tokens    : 5000
+  total tokens         : 26874
+  generation tok/s     : 15.3
+  overall tok/s        : 15.3
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 61%  max 100%  |  mem peak 42341/46068 MiB  |  1163 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7865 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+We need answer user's request. Need produce valid JSON only. Need analyze lead. User included a lot of logs and notes after lead context, likely irrelevant? The task: produce suggestions for this lead. Return ONLY valid JSON. Need include top-level email_draft and summary because enabled. Need only high confidence suggestions. Need no phone/email. Need use company context.
+
+We need decide suggestions.
+Lead: Amar Kumar, state qualified. Fields: project EVITA KRISALA TOWNSHIP COMMON, budget 91 to 1.05 CR, unit 2/3 BHK, carpet 900-1000, buying purpose Investment, source inbound calls, website. Events: latest note CNR 2026-08-26 after outbound lead_missed. Multiple outbound lead_missed: Aug 26, Aug 23, Aug 14, Aug 13, Aug 8, Aug 7. That's 6 recent unanswered outbound attempts, no later answered call and no later inbound. Rule: after 4+ such attempts, do NOT recommend call. Prefer sms/whatsapp, then email. Lead has phone, no email. No evidence of successful/preferred message channel? Notes say "ask for whatsapp will call back me" on 2026-03-20, and "Todays not possible for VC meet | said will connect you once I FREE" on 2026-07-26. This suggests WhatsApp requested? "ask for whatsapp" likely lead asked for WhatsApp. So choose whatsapp (phone exists). Need one NBA: WhatsApp to Amar Kumar to re-engage after 6 unanswered outbound calls since 2026-08-07, latest 2026-08-26 CNR; ask if he is free to connect and schedule VC/site visit for 2 BHK investment in EVITA KRISALA TOWNSHIP COMMON. Since state qualified, allowed transitions: qualified -> hot, warm, cold, unqualified, site_visit_scheduled, lost. No state recommendation needed? Could recommend site_visit_scheduled? Evidence: lead interested, previously VC meet proposed? Note 2026-07-26: today not possible for VC meet, said will connect once free. No scheduled visit. State qualified. Could recommend site_visit_scheduled? Need dependency: site_visit_scheduled requires name, phone, project, site_visit_schedule_date_and_time_03e, source_tags. site_visit_schedule_date_and_time_03e is empty. So cannot recommend site_visit_scheduled unless field filled. Could recommend hot? Dependency hot: project, source_tags filled. Allowed from qualified. Is evidence strong for hot? Lead has strong interest? He is investor, budget okay, showing interest for 2 BHK HKT, said will connect once free. But after many CNR, maybe warm? State descriptions: hot strong interest, clear intent, high purchase readiness prompt follow-up; warm shown interest not ready. Current qualified. Could recommend hot? It's allowed and deps satisfied. But is it strong? He was interested and committed to connect when free, but no recent response. Maybe warm is safer? Allowed from qualified. Dependency warm: project, source_tags. But state recommendation should be evidence strong. The lead has been qualified, interested, budget okay, investment. However 6 missed calls and no response for 12 days. Could be warm. But state recommendation not necessary if NBA is outreach. We can include state recommendation? Need high confidence only. If recommend warm, evidence: interest shown but not ready/engaged after missed calls. But current state qualified already means genuine opportunity. Warm is a nurturing state. Is it a meaningful step? Maybe not. The primary action is WhatsApp re-engagement. State recommendation may be optional. Need avoid padding. One solid suggestion better. Could only NBA.
+
+Info gap: Are there empty fields with stated values? Notes: "he is from Mumbai" -> Area field? Company field Area choices include Mumbai. lead_fields Area empty. Note says from Mumbai. Also "Investor" -> Buying Purpose already filled Investment. "2 BHK HKT" -> Unit Type filled 2 BHK, 3 BHK; Project filled EVITA KRISALA TOWNSHIP COMMON. "Budget is okay" no exact budget? Budget filled 91 to 1.05 CR. "VC meet" no field? Site Visit Type? Could be Video Conference? Not necessarily scheduled. "from Mumbai" maps to Area (Customer Additional Details) label Area, choices include Mumbai. This is a stated value for empty company field. Include info_gap? Rule: Prefer company fields notes/events already provide value but empty. Include if 1-4 such empty fields have stated value right now. So yes, Area: Mumbai. Also "HKT" maybe project? Already project EVITA KRISALA TOWNSHIP COMMON. "2 BHK" filled. "Investment" filled. So info_gap with Area: Mumbai. Need action.details "Area: Mumbai". updates: name location__ac1e6456, label Area, value Mumbai. Is Area a tags field, value can be ["Mumbai"]? In updates value from notes/events. Could use "Mumbai". Need exact label. Good.
+
+Need email draft: no email address, but email drafts enabled. Need ready-to-send email from sales agent to lead. Since no email, can still draft? It says if no useful reason to email, write short factual follow-up grounded in latest events. We can draft WhatsApp? It asks email_draft object. Need not include phone/email. Use company name KRISALA BUILDTECH LLP. Subject and body. Should be based on latest events: multiple attempts, interested in 2 BHK investment in EVITA KRISALA TOWNSHIP COMMON, ask if free to connect/schedule VC. No invented offers. Sign KRISALA BUILDTECH LLP.
+
+Summary: max 6 lines, factual. Lines:
+1 Amar Kumar is interested in 2 BHK/3 BHK investment in EVITA KRISALA TOWNSHIP COMMON with budget 91 to 1.05 CR and carpet area 900 - 1000 sq ft.
+2 He is from Mumbai and noted as an investor on 2026-07-26, with interest in 2 BHK HKT.
+3 The latest call on 2026-08-26 was outbound and lead_missed, followed by a CNR note.
+4 Earlier outbound attempts on 2026-08-23, 2026-08-14, 2026-08-13, 2026-08-08, and 2026-08-07 were also lead_missed.
+5 On 2026-07-26 he said a VC meet was not possible that day and he would connect once free.
+6 No open reminders are present, and the lead remains in qualified state.
+Need no next action. Good.
+
+NBA: type Next Best Action, priority Immediate? Since 6 unanswered, 12 days since last attempt, lead said will connect when free. Immediate? Same Day? User availability next days 09-18. Current time 18:03, after hours. Could schedule next day 09:00? action_type whatsapp. scheduled_time? For outreach, can set scheduled_time? It says ISO datetime in company timezone, or empty. Since user free 2026-09-08 09:00-18:00, choose 2026-09-08T09:00:00+05:30. But if sending WhatsApp now? It's 18:03, outside 09-18? User availability only free windows; can send message outside? Probably schedule within free window. Use 2026-09-08T09:00:00+05:30. Priority Immediate? Since after hours, Same Day? It's Monday 18:03, next day. Priority Immediate maybe okay? Ordered urgency. Could be Same Day? Since can't do today due availability, Next Day? The lead has been unresponsive 12 days. I'd say Immediate because re-engagement needed, but scheduled next morning. Priority options Immediate, Same Day, Next Day, This Week. Since scheduled next day, Next Day maybe more accurate. But urgency high. Use Immediate? The rule ordered by urgency immediate first. If only one, priority can be Immediate. But if scheduled next day, maybe Same Day? Current local 6:03 PM, user free next day. I'd choose Immediate to reflect high urgency, scheduled_time next day.
+
+Action details: "Send WhatsApp to Amar Kumar: acknowledge previous calls, ask if he is free now to connect, and schedule a VC/site visit for 2 BHK investment in EVITA KRISALA TOWNSHIP COMMON." Need no phone. Good.
+
+Need ensure no two suggestions same type. We have NBA and Info Gap. Info Gap priority? Same Day? It's field update, can be immediate. But if info gap overlaps? It doesn't overlap contact. It's okay. Need high confidence. Area from note direct. Good.
+
+Need state recommendation? If include, type State Recommendation. Could recommend warm? Let's evaluate. Current qualified. Allowed to warm. Evidence: lead showed interest but not ready/engaged after 6 missed calls. State description warm: shown interest but not ready to make purchase and requires continued nurturing. This fits. Dependency satisfied. Is it high confidence? Maybe. But do we need? The NBA is outreach. State recommendation may be useful. But rule: Return as many as required, one solid better than padding. State change not automatically needed. If we recommend warm, it's a CRM update, not customer-facing. Could be high. But if we include, need action details exact state name "warm". Title under 10 words. Reasoning: "Amar Kumar showed interest on 2026-07-26 but has not answered six outbound calls through 2026-08-26, so warm fits continued nurturing." Is that direct? Yes. But current state qualified already means genuine opportunity; moving to warm may be a downgrade. Is it appropriate? The lead is qualified, but unresponsive. Warm is allowed. However state recommendation should prefer states whose descriptions match evidence. Hot? He said budget okay, interest, will connect. But no recent response. Warm seems safer. But do we need to change state? Maybe not. The NBA will re-engage. If we include state recommendation, it's an extra card. Quality bar: prefer fewer sharp suggestions. I'd omit state recommendation to avoid unnecessary.
+
+Need email draft. Since no email, but required. Subject: "Follow-up on your 2 BHK investment enquiry". Body: "Dear Amar Kumar, I am following up on your interest in a 2 BHK investment option in EVITA KRISALA TOWNSHIP COMMON. We have tried to reach you by call recently. Please let me know a convenient time to connect, and we can schedule a video conference or site visit. Regards, KRISALA BUILDTECH LLP". Need no phone/email. Good.
+
+Need ensure JSON valid. Top-level keys: suggestions, email_draft, summary. No extra.
+
+Potential issue: action_type allowed includes whatsapp. Good.
+Info Gap action details: "Area: Mumbai". updates: [{"name":"location__ac1e6456","label":"Area","value":"Mumbai"}]. Good.
+
+Need check field allowlist: Area exact label. Yes.
+
+Need check no phone numbers. Good.
+
+Need check "Never say lead unanswered an inbound call." We say outbound lead_missed. Good.
+
+Need check "Do not ask agent to confirm outcome recorded". We don't.
+
+Need check "If scheduled time passed and no later event records outcome, confirm". No scheduled event.
+
+Need check "After 4+ unanswered outbound follow-up calls, skip call and prefer sms/whatsapp, then email. Pick lead's recently used/successful message channel when one exists; otherwise sms if phone exists, else whatsapp..." Here note says ask for whatsapp, so whatsapp. Need cite unanswered attempt count and latest date/status in reasoning. We'll cite six unanswered outbound calls, latest 2026-08-26 lead_missed. Good.
+
+Need check "One unanswered outbound call not enough" not relevant.
+
+Need check "If newest event is inbound user_missed" no.
+
+Need check "Do not choose channel solely because contact info exists." We have note asking WhatsApp.
+
+Need check "Do not split one outreach into multiple suggestions." Only one NBA.
+
+Need check "Each suggestion different type." Yes.
+
+Need check "Only high confidence suggestions." Info gap high. NBA high? Evidence direct: 6 missed calls, lead said will connect when free, WhatsApp requested. High.
+
+Need check "Cite exact details from data (dates, names, reminder messages, field values) — do not paraphrase." We'll cite exact dates and statuses.
+
+Need check "title under 10 words". NBA title: "WhatsApp Amar Kumar to re-engage" 5? Info: "Record Mumbai as Area" 4.
+
+Need check "reasoning 1-2 sentences". Good.
+
+Need check "action.details for call/reminder/schedule_visit without template: Action description. Otherwise: specific executable details covering full agenda in one step". For whatsapp, details specific.
+
+Need check "template_name exact action_templates action_name, or empty". Use empty.
+
+Need check "scheduled_time ISO datetime in company timezone, or empty". Use +05:30.
+
+Need check "updates" only for field_update? It says action.updates MUST be ... whenever value stated. For NBA, updates can be empty? Required output includes updates array. We can include [] for NBA. For info gap include updates.
+
+Need check "email_draft" top-level. Good.
+
+Need check "summary" top-level string. It says maximum 6 lines. In JSON string can include newline characters. Need ensure valid JSON. Use
+. Each line complete sentence. 6 lines. Good.
+
+Potential issue: The user appended a lot of internal billing notes after lead context. Should ignore? Yes, task is produce suggestions. Return only JSON.
+
+Need consider if info gap Area: Mumbai from note "he is from Mumbai". Company field Area choices include Mumbai. Good.
+
+Need consider if "HKT" maps to project? Project already filled EVITA KRISALA TOWNSHIP COMMON. HKT maybe abbreviation? Not needed.
+
+Need consider if "VC meet" maps to Site Visit Type? There is field Site Visit Type choices Video Conference, Onsite. Note says VC meet not possible today. Does that state a value? It indicates he was proposed VC meet? Could fill Site Visit Type: Video Conference? But not necessarily a lead preference, just a proposed meeting. The rule: notes/events already provide a value for empty company field. "VC meet" could map to Site Visit Type = Video Conference. Is that a value worth recording? It says "Todays not possible for VC meet". It implies a VC meet was being discussed. Could include Site Visit Type: Video Conference. But is it direct? The note says VC meet, not necessarily site visit type. Company field label "Site Visit Type" choices Video Conference/Onsite. It might be appropriate. But info_gap max 1-4 fields. We can include Area and Site Visit Type? Need be careful not to infer. "VC meet" is a video conference meeting, not necessarily site visit. The field is Site Visit Type, could be used for virtual meet. State descriptions include vc_done. There is no VC field. I'd avoid to prevent inventing. Area is clear.
+
+Need consider "Investor" maps to Buying Purpose? Already filled Investment. Good.
+
+Need consider "2 BHK HKT" maps to Project? Already filled. Unit Type filled.
+
+Need consider "Budget is okay" no exact.
+
+Need consider "from Mumbai" maps to City? City choices include Mumbai? City choices: Pune, Patna, Mumbai, Bangalore, Bhopal. Area choices include Mumbai. Which field is better? Note "he is from Mumbai" likely location. Company has both Area and City. Area choices include Mumbai, City choices include Mumbai. Which one to choose? LEAD FIELD ALIASES doesn't cover location. Need map wording to company field. "from Mumbai" could be City or Area. Which is more appropriate? Customer Additional Details has Area (tags) and City (tags). If someone is from Mumbai, City = Mumbai is more direct. Area is local area, choices include Mumbai as a city. Both empty. Which exact label? Need choose one. The note says from Mumbai, not area. City label "City" seems better. But field choices for City include Mumbai. Area also includes Mumbai. Which is more likely? In real estate, "from Mumbai" means city. Use City: Mumbai. Need check field name city_0b6 label City. Good. Should we include City instead of Area. The rule: match note wording to company field. "from Mumbai" -> City. I'd use City. But earlier I thought Area. Which is safer? City is exact. Use City: Mumbai. Need updates name city_0b6 label City value Mumbai. Good.
+
+Need consider source_tags? Already filled Offline, disposition_answered.
+
+Need consider state dependency for qualified: platform__copy__797, project, source_tags filled. Good.
+
+Need consider if state recommendation to warm requires no fields. Yes.
+
+Need decide final suggestions: NBA + Info Gap. Could include State Recommendation? Let's think if high confidence and useful. The lead is qualified, but after 6 missed calls, maybe should be warm. The NBA is WhatsApp. If we include state recommendation, it's a separate action (state_change) not overlapping. It may be useful. But quality bar: prefer fewer sharp. The state change is not customer-facing and may be debatable. Omit.
+
+Need ensure email draft doesn't include phone/email. Good.
+
+Need ensure summary doesn't include phone/email. Good.
+
+Let's craft JSON:
+{
+ "suggestions": [
+  {
+   "type": "Next Best Action",
+   "priority": "Immediate",
+   "title": "WhatsApp Amar Kumar to re-engage",
+   "reasoning": "Six outbound calls were lead_missed, latest on 2026-08-26, and the 2026-07-26 note says he would connect once free. Use WhatsApp because the 2026-03-20 note says he asked for WhatsApp.",
+   "action": {
+    "action_type": "whatsapp",
+    "details": "Send WhatsApp to Amar Kumar asking if he is free to connect and schedule a video conference or site visit for his 2 BHK investment interest in EVITA KRISALA TOWNSHIP COMMON.",
+    "template_name": "",
+    "scheduled_time": "2026-09-08T09:00:00+05:30",
+    "updates": []
+   },
+   "confidence": "high"
+  },
+  {
+   "type": "Info Gap",
+   "priority": "Same Day",
+   "title": "Record Mumbai as City",
+   "reasoning": "The 2026-07-26 note states he is from Mumbai, and the City field is empty.",
+   "action": {
+    "action_type": "field_update",
+    "details": "City: Mumbai",
+    "template_name": "",
+    "scheduled_time": "",
+    "updates": [{"name":"city_0b6","label":"City","value":"Mumbai"}]
+   },
+   "confidence": "high"
+  }
+ ],
+ "email_draft": {"subject": "Follow-up on your 2 BHK investment enquiry", "body": "Dear Amar Kumar,\n\nI am following up on your interest in a 2 BHK investment option in EVITA KRISALA TOWNSHIP COMMON. We have tried to reach you by call recently.\n\nPlease let me know a convenient time to connect, and we can schedule a video conference or site visit.\n\nRegards,\nKRISALA BUILDTECH LLP"},
+ "summary": "Amar Kumar is interested in 2 BHK and 3 BHK investment options in EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to  1.05 CR and carpet area of 900 - 1000 sq ft.\nHe is from Mumbai and was noted as an investor on 2026-07-26, showing interest in 2 BHK HKT.\nThe latest outbound call on 2026-08-26 was lead_missed, followed by a CNR note.\nEarlier outbound calls on 2026-08-23, 2026-08-14, 2026-08-13, 2026-08-08, and 2026-08-07 were also lead_missed.\nOn 2026-07-26 he said a VC meet was not possible that day and he would connect once free.\nNo open reminders are present, and the lead remains in qualified state."
+}
+
+Check summary line 1: "2 BHK and 3 BHK" from interested_in. Good. "budget of 91 to  1.05 CR" exact has double space? Field value "91 to  1.05 CR". Use exact? It says do not paraphrase. Could preserve double space? In JSON string, can include. Maybe use "91 to 1.05 CR"? It says exact details, do not paraphrase. The field value has two spaces after to. To be safe, use exact "91 to  1.05 CR". But in summary, readability? Use exact. Line 1: budget of 91 to  1.05 CR. Good.
+Line 2: "2 BHK HKT" exact note. Good.
+Line 3: latest outbound call on 2026-08-26 was lead_missed. Good.
+Line 4: earlier outbound calls ... lead_missed. Good.
+Line 5: VC meet exact. Good.
+Line 6: qualified state. Good.
+
+Need check "Maximum 6 lines. Each line one complete sentence." Yes.
+
+Need check "Do not tell agent what to do next and do not repeat suggestion titles." Summary doesn't.
+
+Need check email draft: "We have tried to reach you by call recently." grounded. Good. No phone/email. Sign company name only. Good.
+
+Potential issue: "Use only this company's states, fields, and events." We use City field. Good.
+
+Potential issue: "Field allowlist: info_gap action.details may contain ONLY exact label values from COMPANY CONTEXT lead_fields (or sub

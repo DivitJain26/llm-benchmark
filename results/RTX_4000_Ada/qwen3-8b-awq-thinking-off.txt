@@ -1,0 +1,69 @@
+========================================================================
+2026-09-21 09:19:53  |  model: Qwen/Qwen3-8B-AWQ  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 6.859 s
+  total time           : 25.488 s
+  prompt tokens        : 21642
+  completion tokens    : 682
+  total tokens         : 22324
+  generation tok/s     : 36.6
+  overall tok/s        : 26.8
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 94%  max 100%  |  mem peak 19576/20475 MiB  |  85 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Follow Up Call to Amar Kumar",
+      "reasoning": "Amar Kumar has shown interest in 2 BHK and 3 BHK units in EVITA KRISALA TOWNSHIP COMMON for investment purposes. There have been multiple outbound calls that went unanswered (4+ attempts), and the latest note indicates he is available to connect once free. A follow-up call is needed to schedule a meeting or clarify next steps.",
+      "action": {
+        "action_type": "call",
+        "details": "Follow Up Call to Amar Kumar to schedule a meeting or clarify next steps",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "2026-09-08T10:00:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update Project and Unit Type",
+      "reasoning": "The lead has mentioned interest in EVITA KRISALA TOWNSHIP COMMON for 2 BHK and 3 BHK units. These values should be captured in the 'project_4b930261' and 'interested_in_c5ef20e3' fields to ensure accurate tracking and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "project_4b930261: EVITA KRISALA TOWNSHIP COMMON, interested_in_c5ef20e3: 2 BHK, 3 BHK",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {
+            "name": "project_4b930261",
+            "label": "Project",
+            "value": "EVITA KRISALA TOWNSHIP COMMON"
+          },
+          {
+            "name": "interested_in_c5ef20e3",
+            "label": "Unit Type",
+            "value": "2 BHK, 3 BHK"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on Your Interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Dear Amar Kumar,\n\nI hope you're doing well. I noticed your interest in 2 BHK and 3 BHK units at EVITA KRISALA TOWNSHIP COMMON for investment purposes. We would like to schedule a meeting to discuss further. Please let us know a convenient time for you.\n\nLooking forward to your response.\n\nBest regards,\n[Your Name]\n[Your Position]\n[Company Name]"
+  },
+  "summary": "Amar Kumar is interested in 2 BHK and 3 BHK units at EVITA KRISALA TOWNSHIP COMMON for investment purposes. Multiple outbound calls have gone unanswered. Latest note indicates he is available to connect once free. Project and unit type fields are not fully captured."
+}

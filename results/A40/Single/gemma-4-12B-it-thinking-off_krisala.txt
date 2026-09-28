@@ -1,0 +1,46 @@
+
+logged to logs/gemma-4-12B-it-thinking-off_krisala.txt
+root@2c46a9ef8552:/workspace/llm-benchmark# cat logs/gemma-4-12B-it-thinking-off_krisala.txt
+========================================================================
+2026-09-21 12:07:07  |  model: google/gemma-4-12B-it  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 10.647 s
+  total time           : 34.693 s
+  prompt tokens        : 22394
+  completion tokens    : 475
+  total tokens         : 22869
+  generation tok/s     : 19.8
+  overall tok/s        : 13.7
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 93%  max 100%  |  mem peak 44339/46068 MiB  |  122 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7865 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+```json
+{
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment purposes in the EVITA KRISALA TOWNSHIP COMMON project. He was first contacted in March 2026 and expressed interest in a 2 BHK investment, requesting a WhatsApp follow-up. Most recent interactions since July 2026 have been unsuccessful outbound calls, with the last five attempts resulting in 'lead_missed' status. There are currently no pending reminders or scheduled visits.",
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "WhatsApp follow-up for investment interest",
+      "reasoning": "The lead has not been reached via phone in 5 consecutive attempts since August 7, 2026. A note from March 2020 specifically requested a WhatsApp follow-up regarding a 2 BHK investment.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Reach out to Amar Kumar to discuss his interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON. Acknowledge previous attempts to connect and offer to share further details or schedule a brief call at his convenience."
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Regarding your interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Dear Amar Kumar,\n\nI hope this email finds you well. I am reaching out from KRISALA BUILDTECH LLP regarding your interest in a 2 BHK investment unit at our EVITA KRISALA TOWNSHIP COMMON project.\n\nWe have attempted to connect with you via phone recently but haven't been able to reach you. I would love to share more specific details regarding the investment potential and current availability of the 2 BHK units. \n\nPlease let me know a convenient time for a brief conversation, or feel free to reply to this email with any specific questions you may have.\n\nBest regards,\n\nSales Team\nKRISALA BUILDTECH LLP"
+  }
+}
+```

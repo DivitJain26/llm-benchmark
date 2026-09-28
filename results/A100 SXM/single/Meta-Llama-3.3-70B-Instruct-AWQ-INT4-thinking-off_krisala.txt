@@ -1,0 +1,46 @@
+========================================================================
+2026-09-22 14:05:06  |  model: ibnzterrell/Meta-Llama-3.3-70B-Instruct-AWQ-INT4  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 17.265 s
+  total time           : 33.981 s
+  prompt tokens        : 19530
+  completion tokens    : 336
+  total tokens         : 19866
+  generation tok/s     : 20.1
+  overall tok/s        : 9.9
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 82%  max 100%  |  mem peak 77885/81920 MiB  |  121 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7523 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+```json
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Follow up on Amar Kumar",
+      "reasoning": "Amar Kumar has been showing interest in 2 BHK HKT for investment and has a budget of 91 to 1.05 CR. There have been multiple missed calls and the lead is currently in the 'qualified' state.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss the interest in 2 BHK HKT and budget",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow up on your interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Hi Amar Kumar, hope you're doing well. I wanted to follow up on your interest in 2 BHK HKT for investment at EVITA KRISALA TOWNSHIP COMMON. Please let me know if you have any questions or if there's anything else I can help you with. Best regards, KRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is looking for 2 BHK HKT for investment at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. He has been showing interest and has had multiple interactions, but there have been some missed calls. The lead is currently in the 'qualified' state."
+}
+```

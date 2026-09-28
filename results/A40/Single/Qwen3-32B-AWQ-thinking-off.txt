@@ -1,0 +1,60 @@
+========================================================================
+2026-09-18 10:30:41  |  model: Qwen/Qwen3-32B-AWQ  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 19.587 s
+  total time           : 44.812 s
+  prompt tokens        : 21642
+  completion tokens    : 564
+  total tokens         : 22206
+  generation tok/s     : 22.4
+  overall tok/s        : 12.6
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 98%  max 100%  |  mem peak 44200/46068 MiB  |  153 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on HKT 2 BHK interest",
+      "reasoning": "Amar has shown interest in a 2 BHK unit for investment in HKT and mentioned being unavailable for a VC meeting at the time of the last contact. There have been multiple unanswered outbound calls recently, but the last answered call was on July 11, 2026. It is time to reconnect and follow up on the lead's expressed interest.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to discuss the HKT 2 BHK unit and schedule a VC meeting or site visit.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has a project and budget specified, but the 'Project' field is not yet filled in the lead_fields. This information is critical for moving the lead forward in the pipeline.",
+      "action": {
+        "action_type": "field_update",
+        "details": "Project: EVITA KRISALA TOWNSHIP COMMON",
+        "updates": [
+          {
+            "name": "project_4b930261",
+            "label": "Project",
+            "value": "EVITA KRISALA TOWNSHIP COMMON"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on HKT 2 BHK Investment Opportunity",
+    "body": "Dear Amar, I hope you are doing well. As discussed earlier, we have a great opportunity for a 2 BHK unit in HKT. I would like to follow up and understand if you are still interested in exploring this option. Please let me know a convenient time for a virtual meeting or site visit. Looking forward to your response. Best regards, [Your Name] KRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in HKT. Recent calls were unanswered, with the last successful contact on July 11, 2026. The lead is in the 'Qualified' state and has a budget of 91 to 1.05 CR. The 'Project' field is missing but was mentioned in notes as EVITA KRISALA TOWNSHIP COMMON."
+}

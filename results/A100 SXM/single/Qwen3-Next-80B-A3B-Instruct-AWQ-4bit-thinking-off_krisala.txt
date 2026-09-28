@@ -1,0 +1,59 @@
+========================================================================
+2026-09-22 14:37:04  |  model: cyankiwi/Qwen3-Next-80B-A3B-Instruct-AWQ-4bit  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 2.091 s
+  total time           : 6.342 s
+  prompt tokens        : 20683
+  completion tokens    : 521
+  total tokens         : 21204
+  generation tok/s     : 122.6
+  overall tok/s        : 82.2
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 91%  max 100%  |  mem peak 77691/81920 MiB  |  22 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7523 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Follow up with Amar Kumar on site visit interest",
+      "reasoning": "Amar Kumar expressed interest in 2 BHK at EVITA KRISALA TOWNSHIP COMMON on 2026-07-26 and said he would connect when free; since then, 6 outbound calls were missed (last on 2026-08-26) and no inbound contact occurred.",
+      "action": {
+        "action_type": "sms",
+        "details": "Follow up on interest in 2 BHK at EVITA KRISALA TOWNSHIP COMMON; mention he previously said he would connect when free."
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Immediate",
+      "title": "Update missing CP Type field",
+      "reasoning": "Lead is qualified with project EVITA KRISALA TOWNSHIP COMMON and source Website, but CP Type is empty — required for lead_active, activity_active, visit_active, or booking_active states.",
+      "action": {
+        "action_type": "field_update",
+        "details": "CP Type: ",
+        "updates": [
+          {
+            "name": "cp_type_2e5",
+            "label": "CP Type",
+            "value": []
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Following up on your interest in EVITA KRISALA TOWNSHIP COMMON",
+    "body": "Hi Amar Kumar,\n\nWe noticed you expressed interest in a 2 BHK at EVITA KRISALA TOWNSHIP COMMON for investment purposes. We’d like to reconnect when you’re available to share details or answer any questions.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is a qualified lead interested in a 2 BHK at EVITA KRISALA TOWNSHIP COMMON for investment, with a budget of 91 to 1.05 CR. He was contacted via inbound call on 2026-03-20 and expressed interest in WhatsApp follow-up. Since July 2026, six outbound calls were missed with no response. CP Type field is empty."
+}

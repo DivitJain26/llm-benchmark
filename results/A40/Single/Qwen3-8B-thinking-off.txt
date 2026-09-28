@@ -1,0 +1,43 @@
+========================================================================
+2026-09-18 10:42:38  |  model: Qwen/Qwen3-8B  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 0.191 s
+  total time           : 14.953 s
+  prompt tokens        : 21642
+  completion tokens    : 418
+  total tokens         : 22060
+  generation tok/s     : 28.3
+  overall tok/s        : 28.0
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 98%  max 100%  |  mem peak 43871/46068 MiB  |  52 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7862 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Call Amar Kumar to discuss 2 BHK investment interest",
+      "reasoning": "Amar Kumar has shown interest in 2 BHK units for investment in EVITA KRISALA TOWNSHIP COMMON, with a budget of 91 to 1.05 CR. He has missed multiple outbound calls and mentioned he will connect once free. This is an opportunity to follow up and schedule a meeting.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to discuss his interest in 2 BHK investment units and schedule a meeting.",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "2026-09-08T10:00:00+05:30"
+      },
+      "confidence": "high"
+    }
+  ],
+  "summary": "Amar Kumar is interested in 2 BHK units for investment in EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. He has missed multiple outbound calls and mentioned he will connect once free. Last contacted on 2026-08-26.",
+  "email_draft": {
+    "subject": "Follow Up on Your Interest in 2 BHK Investment Units",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on your interest in 2 BHK units for investment in EVITA KRISALA TOWNSHIP COMMON. As mentioned, we are available to discuss further and schedule a meeting at your earliest convenience.\n\nPlease let us know a suitable time that works for you. We look forward to assisting you.\n\nBest regards,\n[Your Name]\n[Your Position]\nKRISALA BUILDTECH LLP"
+  }
+}

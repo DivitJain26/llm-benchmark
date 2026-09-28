@@ -1,0 +1,39 @@
+========================================================================
+2026-09-21 11:41:07  |  model: meta-llama/Llama-3.1-8B-Instruct  |  prompt: krisala-lead-suggestion  |  runs: 1
+========================================================================
+
+[metrics]
+  time to first token  : 0.181 s
+  total time           : 5.710 s
+  prompt tokens        : 20439
+  completion tokens    : 168
+  total tokens         : 20607
+  generation tok/s     : 30.4
+  overall tok/s        : 29.4
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 95%  max 100%  |  mem peak 43783/46068 MiB  |  20 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7865 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Follow up with Amar Kumar to discuss 2 BHK investment for HKT",
+      "reasoning": "Amar Kumar expressed interest in 2 BHK as an investment for HKT on 2026-03-20, but no follow-up has been made since then. The lead is currently in the 'qualified' state.",
+      "action": {
+        "action_type": "call",
+        "details": "Discuss 2 BHK investment for HKT and schedule a follow-up meeting",
+        "template_name": "Follow Up Call",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ]
+}

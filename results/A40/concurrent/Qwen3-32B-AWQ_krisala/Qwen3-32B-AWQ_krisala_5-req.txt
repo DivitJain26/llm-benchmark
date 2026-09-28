@@ -1,0 +1,239 @@
+========================================================================
+2026-09-22 10:19:56  |  model: Qwen/Qwen3-32B-AWQ  |  prompt: krisala-lead-suggestion  |  concurrency: 5  |  requests: 5  |  runs: 1  |  thinking: off
+max_tokens: 5000  |  temperature: 0.0
+========================================================================
+
+[load]
+  concurrency          : 5
+  requests             : 5  (ok 5, failed 0)
+  wall time            : 32.129 s
+  requests/s           : 0.16
+
+[throughput]  aggregate over the whole batch (this is the number that scales with load)
+  completion tok/s     : 84.7
+  total tok/s          : 3304.0   (prompt + completion)
+  prompt tokens        : 103435 total   (20687 avg / request)
+  completion tokens    : 2720 total   (544 avg / request)
+
+[latency]  per request         mean / p50 / p95 / max
+  time to first token  : 0.521 / 0.523 / 0.644 / 0.674 s
+  total time           : 32.069 / 32.071 / 32.110 / 32.119 s
+  generation tok/s     : 17.2 / 17.2 / 17.3 / 17.3   (per request, drops as concurrency rises)
+
+[gpu]  sampled every 0.25s across the whole batch with nvidia-smi
+  gpu 0: util avg 99%  max 100%  |  mem peak 43941/46068 MiB  |  114 samples
+
+[per request]   #   start_s   ttft_s   total_s   prompt_tok   comp_tok   gen_tok_s   prompt
+    1     0.001    0.361    32.013        20687        544        17.2   krisala-lead-suggestion
+    2     0.003    0.525    32.072        20687        544        17.2   krisala-lead-suggestion
+    3     0.005    0.523    32.071        20687        544        17.2   krisala-lead-suggestion
+    4     0.007    0.521    32.068        20687        544        17.2   krisala-lead-suggestion
+    5     0.009    0.674    32.119        20687        544        17.3   krisala-lead-suggestion
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7523 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]  request 1 of 5
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on 2 BHK interest",
+      "reasoning": "Amar Kumar has shown interest in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent attempts to contact him have been missed, and the last note indicates he is from Mumbai and prefers to connect when available. A follow-up call is needed to re-engage him and discuss the opportunity.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to follow up on his interest in the 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Discuss availability and schedule a visit or virtual meeting.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about the project and unit type, but the 'whatsapp_number' field is missing. This information is needed to facilitate communication and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "whatsapp_number: [Add WhatsApp number]",
+        "updates": [
+          {
+            "name": "whatsapp_number",
+            "label": "WhatsApp Number",
+            "value": "[Add WhatsApp number]"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on 2 BHK Investment Opportunity",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on our previous conversation regarding the 2 BHK investment opportunity in the EVITA KRISALA TOWNSHIP COMMON project. We have more details and would be happy to discuss this further at your convenience.\n\nPlease let us know a suitable time for a call or meeting.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent calls were missed, and the last note indicates he is from Mumbai and prefers to connect when available. The lead has a 'qualified' status and requires follow-up to re-engage him."
+}
+
+[response]  request 2 of 5
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on 2 BHK interest",
+      "reasoning": "Amar Kumar has shown interest in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent attempts to contact him have been missed, and the last note indicates he is from Mumbai and prefers to connect when available. A follow-up call is needed to re-engage him and discuss the opportunity.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to follow up on his interest in the 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Discuss availability and schedule a visit or virtual meeting.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about the project and unit type, but the 'whatsapp_number' field is missing. This information is needed to facilitate communication and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "whatsapp_number: [Add WhatsApp number]",
+        "updates": [
+          {
+            "name": "whatsapp_number",
+            "label": "WhatsApp Number",
+            "value": "[Add WhatsApp number]"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on 2 BHK Investment Opportunity",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on our previous conversation regarding the 2 BHK investment opportunity in the EVITA KRISALA TOWNSHIP COMMON project. We have more details and would be happy to discuss this further at your convenience.\n\nPlease let us know a suitable time for a call or meeting.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent calls were missed, and the last note indicates he is from Mumbai and prefers to connect when available. The lead has a 'qualified' status and requires follow-up to re-engage him."
+}
+
+[response]  request 3 of 5
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on 2 BHK interest",
+      "reasoning": "Amar Kumar has shown interest in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent attempts to contact him have been missed, and the last note indicates he is from Mumbai and prefers to connect when available. A follow-up call is needed to re-engage him and discuss the opportunity.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to follow up on his interest in the 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Discuss availability and schedule a visit or virtual meeting.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about the project and unit type, but the 'whatsapp_number' field is missing. This information is needed to facilitate communication and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "whatsapp_number: [Add WhatsApp number]",
+        "updates": [
+          {
+            "name": "whatsapp_number",
+            "label": "WhatsApp Number",
+            "value": "[Add WhatsApp number]"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on 2 BHK Investment Opportunity",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on our previous conversation regarding the 2 BHK investment opportunity in the EVITA KRISALA TOWNSHIP COMMON project. We have more details and would be happy to discuss this further at your convenience.\n\nPlease let us know a suitable time for a call or meeting.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent calls were missed, and the last note indicates he is from Mumbai and prefers to connect when available. The lead has a 'qualified' status and requires follow-up to re-engage him."
+}
+
+[response]  request 4 of 5
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on 2 BHK interest",
+      "reasoning": "Amar Kumar has shown interest in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent attempts to contact him have been missed, and the last note indicates he is from Mumbai and prefers to connect when available. A follow-up call is needed to re-engage him and discuss the opportunity.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to follow up on his interest in the 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Discuss availability and schedule a visit or virtual meeting.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about the project and unit type, but the 'whatsapp_number' field is missing. This information is needed to facilitate communication and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "whatsapp_number: [Add WhatsApp number]",
+        "updates": [
+          {
+            "name": "whatsapp_number",
+            "label": "WhatsApp Number",
+            "value": "[Add WhatsApp number]"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on 2 BHK Investment Opportunity",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on our previous conversation regarding the 2 BHK investment opportunity in the EVITA KRISALA TOWNSHIP COMMON project. We have more details and would be happy to discuss this further at your convenience.\n\nPlease let us know a suitable time for a call or meeting.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent calls were missed, and the last note indicates he is from Mumbai and prefers to connect when available. The lead has a 'qualified' status and requires follow-up to re-engage him."
+}
+
+[response]  request 5 of 5
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Same Day",
+      "title": "Call Amar Kumar to follow up on 2 BHK interest",
+      "reasoning": "Amar Kumar has shown interest in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent attempts to contact him have been missed, and the last note indicates he is from Mumbai and prefers to connect when available. A follow-up call is needed to re-engage him and discuss the opportunity.",
+      "action": {
+        "action_type": "call",
+        "details": "Call Amar Kumar to follow up on his interest in the 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Discuss availability and schedule a visit or virtual meeting.",
+        "template_name": "Follow Up Call"
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Update missing lead fields",
+      "reasoning": "The lead has provided information about the project and unit type, but the 'whatsapp_number' field is missing. This information is needed to facilitate communication and follow-up.",
+      "action": {
+        "action_type": "field_update",
+        "details": "whatsapp_number: [Add WhatsApp number]",
+        "updates": [
+          {
+            "name": "whatsapp_number",
+            "label": "WhatsApp Number",
+            "value": "[Add WhatsApp number]"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow Up on 2 BHK Investment Opportunity",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I wanted to follow up on our previous conversation regarding the 2 BHK investment opportunity in the EVITA KRISALA TOWNSHIP COMMON project. We have more details and would be happy to discuss this further at your convenience.\n\nPlease let us know a suitable time for a call or meeting.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in a 2 BHK unit for investment in the EVITA KRISALA TOWNSHIP COMMON project. Recent calls were missed, and the last note indicates he is from Mumbai and prefers to connect when available. The lead has a 'qualified' status and requires follow-up to re-engage him."
+}

@@ -1,0 +1,78 @@
+========================================================================
+2026-09-23 09:57:14  |  model: openai/gpt-oss-120b  |  prompt: krisala-lead-suggestion-1  |  runs: 1
+========================================================================
+
+[metrics]
+  time to first token  : 16.905 s
+  total time           : 22.472 s
+  prompt tokens        : 17484
+  completion tokens    : 2762
+  total tokens         : 20246
+  generation tok/s     : 496.1
+  overall tok/s        : 122.9
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 97%  max 100%  |  mem peak 76831/81920 MiB  |  79 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion-1.txt  (7025 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "WhatsApp to schedule video call",
+      "reasoning": "Lead missed 6 outbound calls and noted interest in a video conference; after 4 missed calls, a call is not recommended, so send a WhatsApp message to propose scheduling.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Message: \"Hi Amar, following up on your interest in 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON. Would you like to schedule a video conference at your convenience? Please share a suitable time.\"",
+        "template_name": "",
+        "scheduled_time": "2026-09-08T10:00:00+05:30",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "State Recommendation",
+      "priority": "Immediate",
+      "title": "Move to Hot stage",
+      "reasoning": "Lead is qualified, has expressed clear investment interest and budget; dependencies for Hot (project and source tags) are satisfied, and transition from Qualified to Hot is allowed.",
+      "action": {
+        "action_type": "state_change",
+        "details": "hot",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    },
+    {
+      "type": "Info Gap",
+      "priority": "Same Day",
+      "title": "Add City information",
+      "reasoning": "Note on 2026-07-26 mentions the lead is from Mumbai, but the City field is empty.",
+      "action": {
+        "action_type": "field_update",
+        "details": "City: Mumbai",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": [
+          {h
+            "name": "city_0b6",
+            "label": "City",
+            "value": "Mumbai"
+          }
+        ]
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Follow‑up on your investment interest",
+    "body": "Hi Amar,\n\nI hope you are well. Following up on your interest in a 2 BHK investment at EVITA KRISALA TOWNSHIP COMMON, I would be happy to arrange a video conference at a time that suits you. Please let me know your preferred slot.\n\nBest regards,\n[Your Name]\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is interested in investing in 2 BHK and 3 BHK units at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. The lead is currently in the Qualified stage. Recent activity includes multiple missed outbound calls (last on 2026‑08‑26) and notes indicating interest and a request to connect via WhatsApp for a video conference. No video conference or site visit has been scheduled yet. There are no pending reminders. The City field is missing, though a note mentions he is from Mumbai."
+}

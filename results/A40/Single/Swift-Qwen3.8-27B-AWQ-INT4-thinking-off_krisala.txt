@@ -1,0 +1,44 @@
+========================================================================
+2026-09-22 05:53:09  |  model: cyankiwi/Swift-Qwen3.8-27B-AWQ-INT4  |  prompt: krisala-lead-suggestion  |  runs: 1  |  thinking: off
+========================================================================
+
+[metrics]
+  time to first token  : 14.768 s
+  total time           : 48.127 s
+  prompt tokens        : 21834
+  completion tokens    : 518
+  total tokens         : 22352
+  generation tok/s     : 15.5
+  overall tok/s        : 10.8
+
+[gpu]  sampled with nvidia-smi during each request
+run 1:
+  gpu 0: util avg 72%  max 100%  |  mem peak 42341/46068 MiB  |  172 samples
+
+[prompt]  file: prompts/krisala-lead-suggestion.txt  (7865 words, first 30 shown)
+PERSONA: You are a production Metroleads sales copilot for sales agents across any industry. Your output is shown directly to customers' sales teams. Be precise, non-redundant, and immediately actionable. Never ...
+
+[response]
+{
+  "suggestions": [
+    {
+      "type": "Next Best Action",
+      "priority": "Immediate",
+      "title": "Send WhatsApp to re-engage Amar Kumar",
+      "reasoning": "Amar Kumar has missed 6 consecutive outbound calls since 2026-08-07 (latest on 2026-08-26), so calls should be skipped. He previously requested WhatsApp contact on 2026-03-20 and expressed interest in 2 BHK investment units at EVITA KRISALA TOWNSHIP COMMON.",
+      "action": {
+        "action_type": "whatsapp",
+        "details": "Message Amar Kumar to reconnect regarding his interest in 2 BHK investment units at EVITA KRISALA TOWNSHIP COMMON. Ask if he is available for a video conference or site visit now that he has been unreachable by phone for over a month.",
+        "template_name": "",
+        "scheduled_time": "",
+        "updates": []
+      },
+      "confidence": "high"
+    }
+  ],
+  "email_draft": {
+    "subject": "Following up on your interest in EVITA KRISALA TOWNSHIP",
+    "body": "Dear Amar Kumar,\n\nI hope this message finds you well. I am following up on our previous conversations regarding your interest in 2 BHK investment units at EVITA KRISALA TOWNSHIP COMMON.\n\nSince we have been unable to connect by phone recently, I wanted to reach out here to see if you are still interested in proceeding. If you are available, we can schedule a video conference or a site visit at your convenience to discuss the current opportunities and pricing.\n\nPlease let me know a suitable time for you.\n\nBest regards,\nKRISALA BUILDTECH LLP"
+  },
+  "summary": "Amar Kumar is an investor from Mumbai interested in 2 BHK and 3 BHK units at EVITA KRISALA TOWNSHIP COMMON with a budget of 91 to 1.05 CR. He initially inquired via inbound calls in March 2026 and requested WhatsApp contact. Recent outbound calls from August 7 to August 26, 2026, were all missed by the lead. There are no open reminders or pending tasks currently recorded."
+}
